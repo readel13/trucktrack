@@ -1,0 +1,13 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://${DBHOST}:5432/trucktrack
+    username: ${DBUSER}
+    password: ${DBPASS}
+    driver-class-name: org.postgresql.Driver
+  flyway:
+    url: jdbc:postgresql://${DBHOST}:5432/trucktrack
+    user: ${DBUSER}
+    password: ${DBPASS}
+    driver-class-name: org.postgresql.Driver
+    locations: classpath:db/migration
+    baseline-on-migrate: true
