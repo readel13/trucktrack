@@ -1,7 +1,6 @@
 package edu.trucktrack.api;
 
 import edu.trucktrack.entity.Company;
-import edu.trucktrack.jooq.tables.record.CompanyRecord;
 import edu.trucktrack.record.CompanyEntityRecord;
 import edu.trucktrack.repository.CompanyJpaRepository;
 import lombok.RequiredArgsConstructor;

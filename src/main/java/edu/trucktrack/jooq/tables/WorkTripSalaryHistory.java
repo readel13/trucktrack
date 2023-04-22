@@ -3,20 +3,17 @@
  */
 package edu.trucktrack.jooq.tables;
 
+
+import edu.trucktrack.jooq.Public;
+import edu.trucktrack.jooq.tables.records.WorkTripSalaryHistoryRecord;
+
 import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.List;
 import java.util.function.Function;
 
-import edu.trucktrack.jooq.Keys;
-import edu.trucktrack.jooq.Public;
-import edu.trucktrack.jooq.tables.record.WorkTripSalaryHistoryRecord;
 import org.jooq.Field;
-import org.jooq.ForeignKey;
 import org.jooq.Function6;
 import org.jooq.Identity;
 import org.jooq.Name;
-import org.jooq.Record;
 import org.jooq.Records;
 import org.jooq.Row6;
 import org.jooq.Schema;
@@ -26,6 +23,7 @@ import org.jooq.TableField;
 import org.jooq.TableOptions;
 import org.jooq.UniqueKey;
 import org.jooq.impl.DSL;
+import org.jooq.impl.Internal;
 import org.jooq.impl.SQLDataType;
 import org.jooq.impl.TableImpl;
 
@@ -113,10 +111,6 @@ public class WorkTripSalaryHistory extends TableImpl<WorkTripSalaryHistoryRecord
         this(DSL.name("work_trip_salary_history"), null);
     }
 
-    public <O extends Record> WorkTripSalaryHistory(Table<O> child, ForeignKey<O, WorkTripSalaryHistoryRecord> key) {
-        super(child, key, WORK_TRIP_SALARY_HISTORY);
-    }
-
     @Override
     public Schema getSchema() {
         return aliased() ? null : Public.PUBLIC;
@@ -129,35 +123,7 @@ public class WorkTripSalaryHistory extends TableImpl<WorkTripSalaryHistoryRecord
 
     @Override
     public UniqueKey<WorkTripSalaryHistoryRecord> getPrimaryKey() {
-        return Keys.WORK_TRIP_SALARY_HISTORY_PKEY;
-    }
-
-    @Override
-    public List<ForeignKey<WorkTripSalaryHistoryRecord, ?>> getReferences() {
-        return Arrays.asList(Keys.WORK_TRIP_SALARY_HISTORY__FK_SALARY_HISTORY_TRIP_ID, Keys.WORK_TRIP_SALARY_HISTORY__FK_SALARY_HISTORY_SALARY_TYPE);
-    }
-
-    private transient WorkTrip _workTrip;
-    private transient SalaryType _salaryType;
-
-    /**
-     * Get the implicit join path to the <code>public.work_trip</code> table.
-     */
-    public WorkTrip workTrip() {
-        if (_workTrip == null)
-            _workTrip = new WorkTrip(this, Keys.WORK_TRIP_SALARY_HISTORY__FK_SALARY_HISTORY_TRIP_ID);
-
-        return _workTrip;
-    }
-
-    /**
-     * Get the implicit join path to the <code>public.salary_type</code> table.
-     */
-    public SalaryType salaryType() {
-        if (_salaryType == null)
-            _salaryType = new SalaryType(this, Keys.WORK_TRIP_SALARY_HISTORY__FK_SALARY_HISTORY_SALARY_TYPE);
-
-        return _salaryType;
+        return Internal.createUniqueKey(WorkTripSalaryHistory.WORK_TRIP_SALARY_HISTORY, DSL.name("work_trip_salary_history_pkey"), new TableField[]{WorkTripSalaryHistory.WORK_TRIP_SALARY_HISTORY.ID}, true);
     }
 
     @Override

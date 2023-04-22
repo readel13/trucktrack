@@ -62,9 +62,6 @@ public class Employee {
     @OneToMany(mappedBy = "employee", fetch = FetchType.LAZY)
     private Set<EmployeeExpenses> employeeExpenses = new LinkedHashSet<>();
 
-    @OneToMany(mappedBy = "employee", fetch = FetchType.LAZY)
-    private Set<Truck> trucks = new LinkedHashSet<>();
-
     @PrePersist
     public void onCreate() {
         createdAt = LocalDateTime.now();

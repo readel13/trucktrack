@@ -4,17 +4,15 @@
 package edu.trucktrack.jooq.tables;
 
 
+import edu.trucktrack.jooq.Public;
+import edu.trucktrack.jooq.tables.records.SalaryTypeRecord;
+
 import java.util.function.Function;
 
-import edu.trucktrack.jooq.Keys;
-import edu.trucktrack.jooq.Public;
-import edu.trucktrack.jooq.tables.record.SalaryTypeRecord;
 import org.jooq.Field;
-import org.jooq.ForeignKey;
 import org.jooq.Function2;
 import org.jooq.Identity;
 import org.jooq.Name;
-import org.jooq.Record;
 import org.jooq.Records;
 import org.jooq.Row2;
 import org.jooq.Schema;
@@ -24,6 +22,7 @@ import org.jooq.TableField;
 import org.jooq.TableOptions;
 import org.jooq.UniqueKey;
 import org.jooq.impl.DSL;
+import org.jooq.impl.Internal;
 import org.jooq.impl.SQLDataType;
 import org.jooq.impl.TableImpl;
 
@@ -88,10 +87,6 @@ public class SalaryType extends TableImpl<SalaryTypeRecord> {
         this(DSL.name("salary_type"), null);
     }
 
-    public <O extends Record> SalaryType(Table<O> child, ForeignKey<O, SalaryTypeRecord> key) {
-        super(child, key, SALARY_TYPE);
-    }
-
     @Override
     public Schema getSchema() {
         return aliased() ? null : Public.PUBLIC;
@@ -104,7 +99,7 @@ public class SalaryType extends TableImpl<SalaryTypeRecord> {
 
     @Override
     public UniqueKey<SalaryTypeRecord> getPrimaryKey() {
-        return Keys.SALARY_TYPE_PKEY;
+        return Internal.createUniqueKey(SalaryType.SALARY_TYPE, DSL.name("salary_type_pkey"), new TableField[] { SalaryType.SALARY_TYPE.ID }, true);
     }
 
     @Override

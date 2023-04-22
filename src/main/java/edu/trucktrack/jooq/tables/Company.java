@@ -3,19 +3,17 @@
  */
 package edu.trucktrack.jooq.tables;
 
+
+import edu.trucktrack.jooq.Public;
+import edu.trucktrack.jooq.tables.records.CompanyRecord;
+
 import java.time.LocalDateTime;
 import java.util.function.Function;
 
-import edu.trucktrack.jooq.Keys;
-import edu.trucktrack.jooq.Public;
-import edu.trucktrack.jooq.tables.record.CompanyRecord;
-
 import org.jooq.Field;
-import org.jooq.ForeignKey;
 import org.jooq.Function8;
 import org.jooq.Identity;
 import org.jooq.Name;
-import org.jooq.Record;
 import org.jooq.Records;
 import org.jooq.Row8;
 import org.jooq.Schema;
@@ -25,6 +23,7 @@ import org.jooq.TableField;
 import org.jooq.TableOptions;
 import org.jooq.UniqueKey;
 import org.jooq.impl.DSL;
+import org.jooq.impl.Internal;
 import org.jooq.impl.SQLDataType;
 import org.jooq.impl.TableImpl;
 
@@ -119,10 +118,6 @@ public class Company extends TableImpl<CompanyRecord> {
         this(DSL.name("company"), null);
     }
 
-    public <O extends Record> Company(Table<O> child, ForeignKey<O, CompanyRecord> key) {
-        super(child, key, COMPANY);
-    }
-
     @Override
     public Schema getSchema() {
         return aliased() ? null : Public.PUBLIC;
@@ -135,7 +130,7 @@ public class Company extends TableImpl<CompanyRecord> {
 
     @Override
     public UniqueKey<CompanyRecord> getPrimaryKey() {
-        return Keys.COMPANY_PKEY;
+        return Internal.createUniqueKey(Company.COMPANY, DSL.name("company_pkey"), new TableField[]{Company.COMPANY.ID}, true);
     }
 
     @Override
