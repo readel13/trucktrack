@@ -5,6 +5,7 @@ spring:
     password: ${DBPASS}
     driver-class-name: org.postgresql.Driver
   flyway:
+    enabled: true
     url: jdbc:postgresql://${DBHOST}:5432/trucktrack
     user: ${DBUSER}
     password: ${DBPASS}

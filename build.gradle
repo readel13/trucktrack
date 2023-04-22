@@ -31,7 +31,7 @@ dependencies {
     implementation 'com.vaadin:vaadin-spring-boot-starter'
     compileOnly 'org.projectlombok:lombok'
     runtimeOnly 'org.postgresql:postgresql'
-    compileOnly 'org.flywaydb:flyway-core'
+    implementation 'org.flywaydb:flyway-core'
 
     implementation 'org.apache.commons:commons-lang3:3.12.0'
 
