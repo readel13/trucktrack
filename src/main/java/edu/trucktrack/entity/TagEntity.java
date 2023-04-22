@@ -1,6 +1,5 @@
 package edu.trucktrack.entity;
 
-import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -19,37 +18,27 @@ import lombok.Setter;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Getter
 @Setter
 @Entity
-@Table(name = "truck")
+@Table(name = "tag")
 @Builder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class Truck {
-
+public class TagEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "company_id")
-    private Company company;
-
     private String name;
 
-    private String truckNumber;
+    private boolean isSystem;
 
-    private String vinCode;
-
-    //TODO: convert to double or float
-    @Column(name = "fuel_consumption", precision = 4, scale = 2)
-    private BigDecimal fuelConsumption;
-
-    private boolean active = false;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "created_by_employee_id")
+    private EmployeeEntity createdByEmployee;
 
     private LocalDateTime createdAt;
 
@@ -58,22 +47,20 @@ public class Truck {
         createdAt = LocalDateTime.now();
     }
 
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
 
         if (o == null || getClass() != o.getClass()) return false;
 
-        Truck truck = (Truck) o;
+        TagEntity tag = (TagEntity) o;
 
         return new EqualsBuilder()
-                .append(active, truck.active)
-                .append(id, truck.id)
-                .append(name, truck.name)
-                .append(truckNumber, truck.truckNumber)
-                .append(vinCode, truck.vinCode)
-                .append(fuelConsumption, truck.fuelConsumption)
-                .append(createdAt, truck.createdAt)
+                .append(id, tag.id)
+                .append(name, tag.name)
+                .append(isSystem, tag.isSystem)
+                .append(createdAt, tag.createdAt)
                 .isEquals();
     }
 
@@ -82,10 +69,7 @@ public class Truck {
         return new HashCodeBuilder(17, 37)
                 .append(id)
                 .append(name)
-                .append(truckNumber)
-                .append(vinCode)
-                .append(fuelConsumption)
-                .append(active)
+                .append(isSystem)
                 .append(createdAt)
                 .toHashCode();
     }

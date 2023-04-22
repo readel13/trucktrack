@@ -13,8 +13,8 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 @Getter
 @Setter
 @Entity
-@Table(name = "currency")
-public class Currency {
+@Table(name = "salary_type")
+public class SalaryTypeEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -27,19 +27,13 @@ public class Currency {
 
         if (o == null || getClass() != o.getClass()) return false;
 
-        Currency currency = (Currency) o;
+        SalaryTypeEntity that = (SalaryTypeEntity) o;
 
-        return new EqualsBuilder()
-                .append(id, currency.id)
-                .append(name, currency.name)
-                .isEquals();
+        return new EqualsBuilder().append(id, that.id).append(name, that.name).isEquals();
     }
 
     @Override
     public int hashCode() {
-        return new HashCodeBuilder(17, 37)
-                .append(id)
-                .append(name)
-                .toHashCode();
+        return new HashCodeBuilder(17, 37).append(id).append(name).toHashCode();
     }
 }

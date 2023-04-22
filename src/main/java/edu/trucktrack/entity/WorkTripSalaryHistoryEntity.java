@@ -17,31 +17,35 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 
 @Getter
 @Setter
 @Entity
-@Table(name = "employee_expenses")
+@Table(name = "work_trip_salary_history")
 @Builder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class EmployeeExpenses {
+public class WorkTripSalaryHistoryEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @JoinColumn(name = "employee_id")
+    @JoinColumn(name = "trip_id")
     @ManyToOne(fetch = FetchType.LAZY)
-    private Employee employee;
+    private WorkTripEntity trip;
 
-    private String name;
+    @JoinColumn(name = "salary_type")
+    @ManyToOne(fetch = FetchType.LAZY)
+    private SalaryTypeEntity salaryType;
 
-    private String description;
+    private float salaryRate;
 
-    private Integer value;
+    private Integer calculationValue;
 
+    @CreationTimestamp
     private LocalDateTime createdAt;
 
     @PrePersist
@@ -56,14 +60,13 @@ public class EmployeeExpenses {
 
         if (o == null || getClass() != o.getClass()) return false;
 
-        EmployeeExpenses that = (EmployeeExpenses) o;
+        WorkTripSalaryHistoryEntity that = (WorkTripSalaryHistoryEntity) o;
 
         return new EqualsBuilder()
                 .append(id, that.id)
-                .append(employee, that.employee)
-                .append(name, that.name)
-                .append(description, that.description)
-                .append(value, that.value)
+                .append(salaryType, that.salaryType)
+                .append(salaryRate, that.salaryRate)
+                .append(calculationValue, that.calculationValue)
                 .append(createdAt, that.createdAt)
                 .isEquals();
     }
@@ -71,11 +74,9 @@ public class EmployeeExpenses {
     @Override
     public int hashCode() {
         return new HashCodeBuilder(17, 37)
-                .append(id)
-                .append(employee)
-                .append(name)
-                .append(description)
-                .append(value)
+                .append(id).append(salaryType)
+                .append(salaryRate)
+                .append(calculationValue)
                 .append(createdAt)
                 .toHashCode();
     }

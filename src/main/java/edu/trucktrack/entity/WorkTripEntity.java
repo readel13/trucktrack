@@ -1,9 +1,12 @@
 package edu.trucktrack.entity;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
@@ -20,26 +23,31 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @Entity
-@Table(name = "company")
+@Table(name = "work_trip")
 @Builder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class Company {
+public class WorkTripEntity {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private String name;
 
-    private String email;
-
     private String description;
 
-    private String url;
+    @JoinColumn(name = "employee_id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    private EmployeeEntity employee;
 
-    private String address;
+    private Integer salary;
 
-    private String zipcode;
+    private Integer currencyId;
+
+    private boolean active;
+
+    private LocalDateTime closedAt;
 
     private LocalDateTime createdAt;
 
@@ -55,16 +63,17 @@ public class Company {
 
         if (o == null || getClass() != o.getClass()) return false;
 
-        Company company = (Company) o;
+        WorkTripEntity workTrip = (WorkTripEntity) o;
 
-        return new EqualsBuilder().append(id, company.id)
-                .append(name, company.name)
-                .append(email, company.email)
-                .append(description, company.description)
-                .append(url, company.url)
-                .append(address, company.address)
-                .append(zipcode, company.zipcode)
-                .append(createdAt, company.createdAt)
+        return new EqualsBuilder()
+                .append(active, workTrip.active)
+                .append(id, workTrip.id)
+                .append(name, workTrip.name)
+                .append(description, workTrip.description)
+                .append(salary, workTrip.salary)
+                .append(currencyId, workTrip.currencyId)
+                .append(closedAt, workTrip.closedAt)
+                .append(createdAt, workTrip.createdAt)
                 .isEquals();
     }
 
@@ -73,11 +82,11 @@ public class Company {
         return new HashCodeBuilder(17, 37)
                 .append(id)
                 .append(name)
-                .append(email)
                 .append(description)
-                .append(url)
-                .append(address)
-                .append(zipcode)
+                .append(salary)
+                .append(currencyId)
+                .append(active)
+                .append(closedAt)
                 .append(createdAt)
                 .toHashCode();
     }

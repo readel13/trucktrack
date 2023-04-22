@@ -23,22 +23,24 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @Entity
-@Table(name = "tag")
+@Table(name = "employee_expenses")
 @Builder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class Tag {
+public class EmployeeExpensesEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @JoinColumn(name = "employee_id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    private EmployeeEntity employee;
+
     private String name;
 
-    private boolean isSystem;
+    private String description;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "created_by_employee_id")
-    private Employee createdByEmployee;
+    private Integer value;
 
     private LocalDateTime createdAt;
 
@@ -54,13 +56,15 @@ public class Tag {
 
         if (o == null || getClass() != o.getClass()) return false;
 
-        Tag tag = (Tag) o;
+        EmployeeExpensesEntity that = (EmployeeExpensesEntity) o;
 
         return new EqualsBuilder()
-                .append(id, tag.id)
-                .append(name, tag.name)
-                .append(isSystem, tag.isSystem)
-                .append(createdAt, tag.createdAt)
+                .append(id, that.id)
+                .append(employee, that.employee)
+                .append(name, that.name)
+                .append(description, that.description)
+                .append(value, that.value)
+                .append(createdAt, that.createdAt)
                 .isEquals();
     }
 
@@ -68,8 +72,10 @@ public class Tag {
     public int hashCode() {
         return new HashCodeBuilder(17, 37)
                 .append(id)
+                .append(employee)
                 .append(name)
-                .append(isSystem)
+                .append(description)
+                .append(value)
                 .append(createdAt)
                 .toHashCode();
     }

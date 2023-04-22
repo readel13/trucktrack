@@ -15,6 +15,12 @@ configurations {
     }
 }
 
+compileJava {
+    options.compilerArgs = [
+            '-Amapstruct.defaultComponentModel=spring'
+    ]
+}
+
 repositories {
     mavenCentral()
 }
@@ -37,6 +43,9 @@ dependencies {
 
     annotationProcessor 'org.projectlombok:lombok'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+
+    implementation 'org.mapstruct:mapstruct:1.5.4.Final'
+    annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.4.Final'
 }
 
 dependencyManagement {

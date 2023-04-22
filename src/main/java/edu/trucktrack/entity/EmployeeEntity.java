@@ -1,5 +1,6 @@
 package edu.trucktrack.entity;
 
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -7,6 +8,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
@@ -19,37 +21,46 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import java.time.LocalDateTime;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 @Getter
 @Setter
 @Entity
-@Table(name = "work_trip")
+@Table(name = "employee")
 @Builder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class WorkTrip {
-
+public class EmployeeEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "company_id")
+    private CompanyEntity company;
+
     private String name;
 
-    private String description;
+    private String email;
 
-    @JoinColumn(name = "employee_id")
-    @ManyToOne(fetch = FetchType.LAZY)
-    private Employee employee;
+    private String password;
 
-    private Integer salary;
+    private Boolean active = false;
 
-    private Integer currencyId;
+    private String phoneNumber;
 
-    private boolean active;
-
-    private LocalDateTime closedAt;
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "currency_id")
+    private CurrencyEntity currency;
 
     private LocalDateTime createdAt;
+
+    @OneToMany(mappedBy = "employee", fetch = FetchType.LAZY)
+    private Set<WorkTripEntity> workTrips = new LinkedHashSet<>();
+
+    @OneToMany(mappedBy = "employee", fetch = FetchType.LAZY)
+    private Set<EmployeeExpensesEntity> employeeExpenses = new LinkedHashSet<>();
 
     @PrePersist
     public void onCreate() {
@@ -63,17 +74,18 @@ public class WorkTrip {
 
         if (o == null || getClass() != o.getClass()) return false;
 
-        WorkTrip workTrip = (WorkTrip) o;
+        EmployeeEntity employee = (EmployeeEntity) o;
 
         return new EqualsBuilder()
-                .append(active, workTrip.active)
-                .append(id, workTrip.id)
-                .append(name, workTrip.name)
-                .append(description, workTrip.description)
-                .append(salary, workTrip.salary)
-                .append(currencyId, workTrip.currencyId)
-                .append(closedAt, workTrip.closedAt)
-                .append(createdAt, workTrip.createdAt)
+                .append(id, employee.id)
+                .append(company, employee.company)
+                .append(name, employee.name)
+                .append(email, employee.email)
+                .append(password, employee.password)
+                .append(active, employee.active)
+                .append(phoneNumber, employee.phoneNumber)
+                .append(currency, employee.currency)
+                .append(createdAt, employee.createdAt)
                 .isEquals();
     }
 
@@ -81,12 +93,13 @@ public class WorkTrip {
     public int hashCode() {
         return new HashCodeBuilder(17, 37)
                 .append(id)
+                .append(company)
                 .append(name)
-                .append(description)
-                .append(salary)
-                .append(currencyId)
+                .append(email)
+                .append(password)
                 .append(active)
-                .append(closedAt)
+                .append(phoneNumber)
+                .append(currency)
                 .append(createdAt)
                 .toHashCode();
     }

@@ -1,12 +1,9 @@
 package edu.trucktrack.entity;
 
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
@@ -23,31 +20,26 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @Entity
-@Table(name = "work_trip_cargo_history")
+@Table(name = "company")
 @Builder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class WorkTripCargoHistory {
-
+public class CompanyEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @JoinColumn(name = "trip_id")
-    @ManyToOne(fetch = FetchType.LAZY)
-    private WorkTripEntity trip;
+    private String name;
 
-    private String cargoNumber;
+    private String email;
 
-    private String cargoName;
+    private String description;
 
-    private String cargoDescription;
+    private String url;
 
-    private Integer cargoWeight;
+    private String address;
 
-    private Integer distance;
-
-    private LocalDateTime deliveredAt;
+    private String zipcode;
 
     private LocalDateTime createdAt;
 
@@ -63,17 +55,16 @@ public class WorkTripCargoHistory {
 
         if (o == null || getClass() != o.getClass()) return false;
 
-        WorkTripCargoHistory that = (WorkTripCargoHistory) o;
+        CompanyEntity company = (CompanyEntity) o;
 
-        return new EqualsBuilder()
-                .append(id, that.id)
-                .append(cargoNumber, that.cargoNumber)
-                .append(cargoName, that.cargoName)
-                .append(cargoDescription, that.cargoDescription)
-                .append(cargoWeight, that.cargoWeight)
-                .append(distance, that.distance)
-                .append(deliveredAt, that.deliveredAt)
-                .append(createdAt, that.createdAt)
+        return new EqualsBuilder().append(id, company.id)
+                .append(name, company.name)
+                .append(email, company.email)
+                .append(description, company.description)
+                .append(url, company.url)
+                .append(address, company.address)
+                .append(zipcode, company.zipcode)
+                .append(createdAt, company.createdAt)
                 .isEquals();
     }
 
@@ -81,12 +72,12 @@ public class WorkTripCargoHistory {
     public int hashCode() {
         return new HashCodeBuilder(17, 37)
                 .append(id)
-                .append(cargoNumber)
-                .append(cargoName)
-                .append(cargoDescription)
-                .append(cargoWeight)
-                .append(distance)
-                .append(deliveredAt)
+                .append(name)
+                .append(email)
+                .append(description)
+                .append(url)
+                .append(address)
+                .append(zipcode)
                 .append(createdAt)
                 .toHashCode();
     }

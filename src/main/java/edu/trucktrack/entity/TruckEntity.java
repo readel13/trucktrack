@@ -1,5 +1,6 @@
 package edu.trucktrack.entity;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -17,35 +18,39 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.hibernate.annotations.CreationTimestamp;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Getter
 @Setter
 @Entity
-@Table(name = "work_trip_salary_history")
+@Table(name = "truck")
 @Builder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class WorkTripSalaryHistory {
+public class TruckEntity {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @JoinColumn(name = "trip_id")
     @ManyToOne(fetch = FetchType.LAZY)
-    private WorkTrip trip;
+    @JoinColumn(name = "company_id")
+    private CompanyEntity company;
 
-    @JoinColumn(name = "salary_type")
-    @ManyToOne(fetch = FetchType.LAZY)
-    private SalaryType salaryType;
+    private String name;
 
-    private float salaryRate;
+    private String truckNumber;
 
-    private Integer calculationValue;
+    private String vinCode;
 
-    @CreationTimestamp
+    //TODO: convert to double or float
+    @Column(name = "fuel_consumption", precision = 4, scale = 2)
+    private BigDecimal fuelConsumption;
+
+    private boolean active = false;
+
     private LocalDateTime createdAt;
 
     @PrePersist
@@ -53,30 +58,34 @@ public class WorkTripSalaryHistory {
         createdAt = LocalDateTime.now();
     }
 
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
 
         if (o == null || getClass() != o.getClass()) return false;
 
-        WorkTripSalaryHistory that = (WorkTripSalaryHistory) o;
+        TruckEntity truck = (TruckEntity) o;
 
         return new EqualsBuilder()
-                .append(id, that.id)
-                .append(salaryType, that.salaryType)
-                .append(salaryRate, that.salaryRate)
-                .append(calculationValue, that.calculationValue)
-                .append(createdAt, that.createdAt)
+                .append(active, truck.active)
+                .append(id, truck.id)
+                .append(name, truck.name)
+                .append(truckNumber, truck.truckNumber)
+                .append(vinCode, truck.vinCode)
+                .append(fuelConsumption, truck.fuelConsumption)
+                .append(createdAt, truck.createdAt)
                 .isEquals();
     }
 
     @Override
     public int hashCode() {
         return new HashCodeBuilder(17, 37)
-                .append(id).append(salaryType)
-                .append(salaryRate)
-                .append(calculationValue)
+                .append(id)
+                .append(name)
+                .append(truckNumber)
+                .append(vinCode)
+                .append(fuelConsumption)
+                .append(active)
                 .append(createdAt)
                 .toHashCode();
     }

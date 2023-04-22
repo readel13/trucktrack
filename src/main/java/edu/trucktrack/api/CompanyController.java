@@ -1,55 +1,48 @@
 package edu.trucktrack.api;
 
-import edu.trucktrack.entity.Company;
-import edu.trucktrack.record.CompanyEntityRecord;
-import edu.trucktrack.repository.CompanyJpaRepository;
+import edu.trucktrack.api.dto.CompanyDTO;
+import edu.trucktrack.api.dto.CompanyEmployeeDTO;
+import edu.trucktrack.mapper.CompanyMapper;
+import edu.trucktrack.mapper.EmployeeMapper;
+import edu.trucktrack.service.CompanyService;
 import lombok.RequiredArgsConstructor;
-import org.jooq.DSLContext;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.time.LocalDateTime;
-import java.util.List;
 
 @RestController
 @RequestMapping("/company")
 @RequiredArgsConstructor
 public class CompanyController {
 
-    private final CompanyJpaRepository companyJpaRepository;
+    private final CompanyMapper mapper;
 
-    private final DSLContext context;
+    private final CompanyService service;
+
+    private final EmployeeMapper employeeMapper;
 
     @PostMapping
-    public Company create(@RequestBody Company company) {
-        return companyJpaRepository.save(company);
+    public CompanyDTO create(@Validated @RequestBody CompanyEmployeeDTO companyEmployeeDTO) {
+        var company = mapper.toEntity(companyEmployeeDTO.getCompanyDTO());
+        var employee = employeeMapper.toEntity(companyEmployeeDTO.getEmployeeDTO());
+
+        return mapper.toDTO(service.save(company, employee));
     }
 
-    @PostMapping("/jooq")
-    public void createJooq(@RequestBody Company body) {
-        var company = new edu.trucktrack.jooq.tables.Company("company");
+    @PutMapping("/{id}")
+    public CompanyDTO update(@Validated @RequestBody CompanyDTO companyDTO, @PathVariable Long id) {
+        companyDTO.setId(id);
 
-
-        context.insertInto(company)
-                .set(company.NAME, body.getName())
-                .set(company.EMAIL, body.getEmail())
-                .set(company.DESCRIPTION, body.getDescription())
-                .set(company.URL, body.getUrl())
-                .set(company.ADDRESS, body.getUrl())
-                .set(company.ZIPCODE, body.getZipcode())
-                .set(company.CREATED_AT, LocalDateTime.now())
-                .execute();
+        return mapper.toDTO(service.update(mapper.toEntity(companyDTO)));
     }
 
-    @GetMapping("/all/jooq")
-    public List<CompanyEntityRecord> fetchAllUsingJooq() {
-        var company = new edu.trucktrack.jooq.tables.Company("company");
-
-        return context.select(company.asterisk())
-                .from(company)
-                .fetchInto(CompanyEntityRecord.class);
+    @GetMapping("/{id}")
+    public CompanyDTO getById(@PathVariable Long id) {
+        return mapper.toDTO(service.getById(id));
     }
 }
