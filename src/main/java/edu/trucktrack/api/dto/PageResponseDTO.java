@@ -1,8 +1,6 @@
 package edu.trucktrack.api.dto;
 
 import lombok.Builder;
-import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
 
 import java.util.List;
 

@@ -1,4 +1,8 @@
 spring:
+  devtools:
+    restart:
+      poll-interval: 2s
+      quiet-period: 1s
   datasource:
     url: jdbc:postgresql://${DBHOST}:5432/trucktrack
     username: ${DBUSER}
@@ -12,3 +16,7 @@ spring:
     driver-class-name: org.postgresql.Driver
     locations: classpath:db/migration
     baseline-on-migrate: true
+
+vaadin:
+  servlet:
+    productionMode: true
