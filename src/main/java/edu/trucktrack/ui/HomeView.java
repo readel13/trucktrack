@@ -2,23 +2,36 @@ package edu.trucktrack.ui;
 
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.applayout.DrawerToggle;
+import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.gridpro.GridPro;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.tabs.Tabs;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouterLink;
+import com.vaadin.flow.spring.security.AuthenticationContext;
+import jakarta.annotation.security.PermitAll;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Route("/ui")
+@PermitAll
 public class HomeView extends AppLayout {
 
-    public HomeView() {
+    private final transient AuthenticationContext authContext;
+
+    public HomeView(AuthenticationContext authContext) {
+        this.authContext = authContext;
 
         Tab tab = new Tab("tab1");
 
@@ -43,6 +56,12 @@ public class HomeView extends AppLayout {
 
         addToNavbar(toggle, title);
         addToDrawer(getTabs());
+
+        authContext.getAuthenticatedUser(UserDetails.class)
+                .ifPresent(user -> {
+                    Button logout = new Button("Logout", click -> this.authContext.logout());
+                    addToNavbar(logout);
+                });
     }
 
     private Tabs getTabs() {
