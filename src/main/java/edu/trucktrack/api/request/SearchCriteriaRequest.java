@@ -10,11 +10,11 @@ import java.util.Map;
 @Builder(toBuilder = true)
 public class SearchCriteriaRequest {
 
-    private List<FilterBy> filterBy;
-
-    private Map<String, OrderByDirection> orderBy;
+    private FilterBy filterBy;
 
     private Map<String, String> searchBy;
+
+    private Map<String, OrderByDirection> orderBy;
 
     private Pageable pageable;
 }

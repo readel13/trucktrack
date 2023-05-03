@@ -8,6 +8,7 @@ import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.login.LoginForm;
+import com.vaadin.flow.component.login.LoginI18n;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
@@ -21,16 +22,22 @@ import com.vaadin.flow.server.auth.AnonymousAllowed;
 @AnonymousAllowed
 public class LoginView extends VerticalLayout implements BeforeEnterObserver {
 
-	private LoginForm login = new LoginForm();
+    private final LoginForm login = new LoginForm();
 
 	public LoginView() {
-		addClassName("login-view");
-		setSizeFull();
+        addClassName("login-view");
+        setSizeFull();
 
-		setJustifyContentMode(JustifyContentMode.CENTER);
-		setAlignItems(Alignment.CENTER);
+        setJustifyContentMode(JustifyContentMode.CENTER);
+        setAlignItems(Alignment.CENTER);
 
+		LoginI18n customLoginForm = LoginI18n.createDefault();
+		LoginI18n.Form form = customLoginForm.getForm();
 
+        form.setUsername("Email");
+        form.setTitle("Welcome in Trucktrack!");
+        customLoginForm.setForm(form);
+        login.setI18n(customLoginForm);
 		login.setAction("login");
 
 		Dialog registerTypeChose = new Dialog();
@@ -56,13 +63,13 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
 		add(new H1("Login"), login, new Button("Register", e -> registerTypeChose.open()));
 	}
 
-	@Override
-	public void beforeEnter(BeforeEnterEvent beforeEnterEvent) {
-		if(beforeEnterEvent.getLocation()
-				.getQueryParameters()
-				.getParameters()
-				.containsKey("error")) {
-			login.setError(true);
-		}
-	}
+    @Override
+    public void beforeEnter(BeforeEnterEvent beforeEnterEvent) {
+        if (beforeEnterEvent.getLocation()
+                .getQueryParameters()
+                .getParameters()
+                .containsKey("error")) {
+            login.setError(true);
+        }
+    }
 }

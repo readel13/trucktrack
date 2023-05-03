@@ -42,6 +42,8 @@ public class EmployeeExpensesEntity {
 
     private Integer value;
 
+    private Integer currencyId;
+
     private LocalDateTime createdAt;
 
     @PrePersist

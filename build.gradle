@@ -51,7 +51,10 @@ dependencies {
     implementation 'org.mapstruct:mapstruct:1.5.4.Final'
     annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.4.Final'
 
+    // Vaadin addons
     implementation "com.vaadin:vaadin:20.+"
+    implementation 'org.vaadin.addons.e-movimento:moneyfield:2.1.8'
+    implementation 'org.vaadin.addons.mycompany:badge:2.2.2'
 }
 
 dependencyManagement {
