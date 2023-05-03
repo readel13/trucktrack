@@ -1,6 +1,12 @@
 package edu.trucktrack.ui.security;
 
+import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.dialog.Dialog;
+import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.html.H1;
+import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.login.LoginForm;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.BeforeEnterEvent;
@@ -27,9 +33,27 @@ public class LoginView extends VerticalLayout implements BeforeEnterObserver {
 
 		login.setAction("login");
 
-		RouterLink registerLink = new RouterLink("Register", RegisterView.class);
+		Dialog registerTypeChose = new Dialog();
+		registerTypeChose.setHeaderTitle("Please select user type");
+		FormLayout formLayout = new FormLayout();
+		Button defaultUser = new Button("Driver/Manager");
+		defaultUser.setIcon(new Icon(VaadinIcon.USER));
+		Button owner = new Button("Owner");
+		owner.setIcon(new Icon(VaadinIcon.USERS));
+		formLayout.add(defaultUser, owner);
+		registerTypeChose.add(formLayout);
 
-		add(new H1("Login"), login, registerLink);
+		defaultUser.addClickListener(e -> {
+			UI.getCurrent().navigate(RegisterUserView.class);
+			registerTypeChose.close();
+		});
+
+		owner.addClickListener(e -> {
+			UI.getCurrent().navigate(RegisterCompanyView.class);
+			registerTypeChose.close();
+		});
+
+		add(new H1("Login"), login, new Button("Register", e -> registerTypeChose.open()));
 	}
 
 	@Override

@@ -12,7 +12,12 @@ import com.vaadin.flow.component.select.Select;
 import com.vaadin.flow.component.textfield.EmailField;
 import com.vaadin.flow.component.textfield.PasswordField;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.router.BeforeEvent;
+import com.vaadin.flow.router.HasUrlParameter;
+import com.vaadin.flow.router.Location;
+import com.vaadin.flow.router.OptionalParameter;
 import com.vaadin.flow.router.PageTitle;
+import com.vaadin.flow.router.QueryParameters;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import edu.trucktrack.configuration.SecurityConfig;
@@ -34,18 +39,24 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-@Route("register")
-@PageTitle("Register")
+@Route("register/user")
+@PageTitle("Register User")
 @AnonymousAllowed
-public class RegisterView extends VerticalLayout {
+public class RegisterUserView extends VerticalLayout implements HasUrlParameter<String> {
 
 	private EmployeeService employeeService;
 	private CurrencyJpaRepository currencyJpaRepository;
 	private RoleJpaRepository roleJpaRepository;
 	private CompanyJpaRepository companyJpaRepository;
 
+	private Long companyId;
+	private Select<String> companies;
+	private FormLayout registerFrom;
+	private PasswordField password;
+	private MultiSelectComboBox<String> roles;
+
 	@Autowired
-	public RegisterView(EmployeeService employeeService, CurrencyJpaRepository currencyJpaRepository, RoleJpaRepository roleJpaRepository, CompanyJpaRepository companyJpaRepository) {
+	public RegisterUserView(EmployeeService employeeService, CurrencyJpaRepository currencyJpaRepository, RoleJpaRepository roleJpaRepository, CompanyJpaRepository companyJpaRepository) {
 		this.employeeService = employeeService;
 		this.currencyJpaRepository = currencyJpaRepository;
 		this.companyJpaRepository = companyJpaRepository;
@@ -62,13 +73,13 @@ public class RegisterView extends VerticalLayout {
 		AtomicReference<String> selectedCurrency = new AtomicReference<>("");
 		AtomicReference<String> selectedCompany = new AtomicReference<>("");
 
-		FormLayout registerFrom = new FormLayout();
+		registerFrom = new FormLayout();
 		setHorizontalComponentAlignment(Alignment.CENTER, registerFrom);
 
 		H3 label = new H3("Register");
 		TextField username = new TextField("Username");
 
-		MultiSelectComboBox<String> roles = new MultiSelectComboBox<>();
+		roles = new MultiSelectComboBox<>();
 		roles.setItems(roleJpaRepository.findAll().stream().map(RoleEntity::getRole).collect(Collectors.toList()));
 		roles.addValueChangeListener(event -> {
 			selectedRoles.addAll(event.getValue());
@@ -80,13 +91,13 @@ public class RegisterView extends VerticalLayout {
 		currency.setLabel("Currency");
 		currency.addValueChangeListener(event -> selectedCurrency.set(event.getValue()));
 
-		Select<String> companies = new Select<>();
+		companies = new Select<>();
 		companies.setItems(allCompanies.stream().map(CompanyEntity::getName).collect(Collectors.toList()));
 		companies.setLabel("Company");
 		companies.addValueChangeListener(event -> selectedCompany.set(event.getValue()));
 
 		EmailField email = new EmailField("Email");
-		PasswordField password = new PasswordField("Password");
+		password = new PasswordField("Password");
 		TextField phone = new TextField("Phone");
 
 		registerFrom.setMaxWidth("500px");
@@ -106,7 +117,9 @@ public class RegisterView extends VerticalLayout {
 						phone.getValue(),
 						password.getValue(),
 						allCurrencies.stream().filter(item -> selectedCurrency.get().equals(item.getName())).findFirst().get(),
-						allCompanies.stream().filter(item -> selectedCompany.get().equals(item.getName())).findFirst().get()
+						companyId != null ?
+								allCompanies.stream().filter(item -> companyId.equals(item.getId())).findFirst().get() :
+								allCompanies.stream().filter(item -> selectedCompany.get().equals(item.getName())).findFirst().get()
 						));
 		registerFrom.add(
 				label,
@@ -152,5 +165,18 @@ public class RegisterView extends VerticalLayout {
 
 	private void setRequiredIndicatorVisible(HasValueAndElement<?, ?>... components) {
 		Stream.of(components).forEach(comp -> comp.setRequiredIndicatorVisible(true));
+	}
+
+	@Override
+	public void setParameter(BeforeEvent event, @OptionalParameter String parameter) {
+		Location location = event.getLocation();
+		QueryParameters queryParameters = location.getQueryParameters();
+		List<String> companyParam = queryParameters.getParameters().get("companyId");
+		if (companyParam != null) {
+			companyId = Long.valueOf(companyParam.get(0));
+			registerFrom.remove(companies);
+			registerFrom.setColspan(password, 2);
+			roles.setValue("OWNER");
+		}
 	}
 }
