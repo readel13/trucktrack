@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.Set;
 
 @Data
@@ -18,9 +19,13 @@ public class CostDTO {
 
     private String description;
 
-    private BigDecimal amount;
+    private String tripName;
 
-    private String currencyAmount;
+    private BigDecimal value;
+
+    private String valueCurrency;
 
     private Set<String> badges;
+
+    private LocalDateTime createdAt;
 }

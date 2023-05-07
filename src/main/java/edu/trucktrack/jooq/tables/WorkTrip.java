@@ -13,13 +13,13 @@ import java.util.List;
 import java.util.function.Function;
 
 import org.jooq.Field;
-import org.jooq.Function10;
+import org.jooq.Function11;
 import org.jooq.Identity;
 import org.jooq.Index;
 import org.jooq.Name;
 import org.jooq.OrderField;
 import org.jooq.Records;
-import org.jooq.Row10;
+import org.jooq.Row11;
 import org.jooq.Schema;
 import org.jooq.SelectField;
 import org.jooq.Table;
@@ -102,6 +102,11 @@ public class WorkTrip extends TableImpl<WorkTripRecord> {
      * The column <code>public.work_trip.created_at</code>.
      */
     public final TableField<WorkTripRecord, LocalDateTime> CREATED_AT = createField(DSL.name("created_at"), SQLDataType.LOCALDATETIME(6).nullable(false).defaultValue(DSL.inline("CURRENT_TIMESTAMP", SQLDataType.LOCALDATETIME)), this, "");
+
+    /**
+     * The column <code>public.work_trip.salary_type</code>.
+     */
+    public final TableField<WorkTripRecord, Integer> SALARY_TYPE = createField(DSL.name("salary_type"), SQLDataType.INTEGER.nullable(false).defaultValue(DSL.inline("1", SQLDataType.INTEGER)), this, "");
 
     private WorkTrip(Name alias, Table<WorkTripRecord> aliased) {
         this(alias, aliased, null);
@@ -196,18 +201,18 @@ public class WorkTrip extends TableImpl<WorkTripRecord> {
     }
 
     // -------------------------------------------------------------------------
-    // Row10 type methods
+    // Row11 type methods
     // -------------------------------------------------------------------------
 
     @Override
-    public Row10<Long, String, String, Integer, Integer, Integer, Integer, Boolean, LocalDateTime, LocalDateTime> fieldsRow() {
-        return (Row10) super.fieldsRow();
+    public Row11<Long, String, String, Integer, Integer, Integer, Integer, Boolean, LocalDateTime, LocalDateTime, Integer> fieldsRow() {
+        return (Row11) super.fieldsRow();
     }
 
     /**
      * Convenience mapping calling {@link SelectField#convertFrom(Function)}.
      */
-    public <U> SelectField<U> mapping(Function10<? super Long, ? super String, ? super String, ? super Integer, ? super Integer, ? super Integer, ? super Integer, ? super Boolean, ? super LocalDateTime, ? super LocalDateTime, ? extends U> from) {
+    public <U> SelectField<U> mapping(Function11<? super Long, ? super String, ? super String, ? super Integer, ? super Integer, ? super Integer, ? super Integer, ? super Boolean, ? super LocalDateTime, ? super LocalDateTime, ? super Integer, ? extends U> from) {
         return convertFrom(Records.mapping(from));
     }
 
@@ -215,7 +220,7 @@ public class WorkTrip extends TableImpl<WorkTripRecord> {
      * Convenience mapping calling {@link SelectField#convertFrom(Class,
      * Function)}.
      */
-    public <U> SelectField<U> mapping(Class<U> toType, Function10<? super Long, ? super String, ? super String, ? super Integer, ? super Integer, ? super Integer, ? super Integer, ? super Boolean, ? super LocalDateTime, ? super LocalDateTime, ? extends U> from) {
+    public <U> SelectField<U> mapping(Class<U> toType, Function11<? super Long, ? super String, ? super String, ? super Integer, ? super Integer, ? super Integer, ? super Integer, ? super Boolean, ? super LocalDateTime, ? super LocalDateTime, ? super Integer, ? extends U> from) {
         return convertFrom(toType, Records.mapping(from));
     }
 }

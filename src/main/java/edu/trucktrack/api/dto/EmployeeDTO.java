@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 @Builder(toBuilder = true)
 public class EmployeeDTO {
 
-    private Integer id;
+    private Long id;
 
     private String name;
 

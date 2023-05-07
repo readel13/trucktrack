@@ -37,10 +37,6 @@ public class WorkTripSalaryHistoryEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     private WorkTripEntity trip;
 
-    @JoinColumn(name = "salary_type")
-    @ManyToOne(fetch = FetchType.LAZY)
-    private SalaryTypeEntity salaryType;
-
     private float salaryRate;
 
     private Integer calculationValue;
@@ -64,7 +60,6 @@ public class WorkTripSalaryHistoryEntity {
 
         return new EqualsBuilder()
                 .append(id, that.id)
-                .append(salaryType, that.salaryType)
                 .append(salaryRate, that.salaryRate)
                 .append(calculationValue, that.calculationValue)
                 .append(createdAt, that.createdAt)
@@ -74,7 +69,7 @@ public class WorkTripSalaryHistoryEntity {
     @Override
     public int hashCode() {
         return new HashCodeBuilder(17, 37)
-                .append(id).append(salaryType)
+                .append(id)
                 .append(salaryRate)
                 .append(calculationValue)
                 .append(createdAt)

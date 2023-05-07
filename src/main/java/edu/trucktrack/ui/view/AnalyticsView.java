@@ -24,6 +24,17 @@ public class AnalyticsView extends VerticalLayout {
 
         chartPie.getConfiguration().setSeries(dataSeries);
 
-        add(title, chartPie);
+        DataSeries anotherSeries = new DataSeries(
+                new DataSeriesItem("Section 1", 23),
+                new DataSeriesItem("Section 2", 11)
+        );
+
+        Chart chart = new Chart();
+        chart.getConfiguration().getChart().setType(ChartType.AREA);
+        chart.getConfiguration().addSeries(dataSeries);
+        chart.getConfiguration().addSeries(anotherSeries);
+
+
+        add(title, chartPie, chart);
     }
 }

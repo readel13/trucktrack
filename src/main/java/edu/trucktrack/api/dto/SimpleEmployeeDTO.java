@@ -7,7 +7,7 @@ import lombok.Data;
 @Builder(toBuilder = true)
 public class SimpleEmployeeDTO {
 
-    private Integer id;
+    private Long id;
 
     private String name;
 }

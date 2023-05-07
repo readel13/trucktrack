@@ -11,13 +11,13 @@ import java.time.LocalDate;
 @Builder(toBuilder = true)
 public class TruckDTO {
 
-    private Integer id;
-
-    @NotNull
-    private Integer companyId;
+    private Long id;
 
     @NotBlank
     private String name;
+
+    @NotNull
+    private Integer companyId;
 
     @NotBlank
     private String truckNumber;

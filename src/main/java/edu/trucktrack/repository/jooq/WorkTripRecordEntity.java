@@ -1,30 +1,38 @@
 package edu.trucktrack.repository.jooq;
 
-import lombok.Value;
+import lombok.Builder;
+import lombok.Data;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-@Value
+@Data
+@Builder(toBuilder = true)
 public class WorkTripRecordEntity {
 
-    Long id;
+    private Long id;
 
-    String name;
+    private String name;
 
-    String description;
+    private String description;
 
-    Integer employeeId;
+    private Integer employeeId;
 
-    String employeeName;
+    private String employeeName;
 
-    BigDecimal salary;
+    private Long truckId;
 
-    Integer currencyId;
+    private String truckName;
 
-    boolean active;
+    private BigDecimal salary;
 
-    LocalDateTime closedAt;
+    private String salaryType;
 
-    LocalDateTime createdAt;
+    private String currency;
+
+    private boolean active;
+
+    private LocalDateTime closedAt;
+
+    private LocalDateTime createdAt;
 }

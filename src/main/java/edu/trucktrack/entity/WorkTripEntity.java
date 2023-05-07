@@ -41,9 +41,15 @@ public class WorkTripEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     private EmployeeEntity employee;
 
+    @JoinColumn(name = "truck_id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    private TruckEntity truck;
+
     private Integer salary;
 
     private Integer currencyId;
+
+    private Integer salaryType;
 
     private boolean active;
 

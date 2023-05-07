@@ -1,26 +1,39 @@
 package edu.trucktrack.ui.view;
 
+import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.Text;
+import com.vaadin.flow.component.details.Details;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.gridpro.GridPro;
 import com.vaadin.flow.component.gridpro.GridProVariant;
+import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H1;
+import com.vaadin.flow.component.html.H4;
+import com.vaadin.flow.component.html.H5;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.component.virtuallist.VirtualList;
+import com.vaadin.flow.data.renderer.ComponentRenderer;
+import com.vaadin.flow.router.BeforeEnterEvent;
+import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import edu.trucktrack.api.dto.CostDTO;
+import edu.trucktrack.api.dto.WorkTripDTO;
 import edu.trucktrack.service.CurrencyService;
-import edu.trucktrack.ui.modal.AddCostModal;
+import edu.trucktrack.service.WorkTripService;
 import edu.trucktrack.ui.MainLayout;
+import edu.trucktrack.ui.modal.AddCostModal;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.security.PermitAll;
 import lombok.RequiredArgsConstructor;
 import org.vaadin.addons.badge.Badge;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 
@@ -28,29 +41,85 @@ import java.util.Set;
 @PermitAll
 @RequiredArgsConstructor
 @PageTitle("Your Costs")
-@Route(value = "cost", layout = MainLayout.class)
-public class CostView extends VerticalLayout {
+@Route(value = "/cost/:tripId?", layout = MainLayout.class)
+public class CostView extends VerticalLayout implements BeforeEnterObserver {
 
-    private Grid<CostDTO> grid;
+    private WorkTripDTO trip;
+    private VirtualList<CostDTO> virtualList;
 
     private final CurrencyService currencyService;
+
+    private final WorkTripService workTripService;
+
+    private final H1 title = new H1();
+
+    @Override
+    public void beforeEnter(BeforeEnterEvent event) {
+        var tripId = event.getRouteParameters().get("tripId").map(Long::valueOf).orElse(null);
+        this.trip = workTripService.getById(tripId);
+
+        title.setText(tripId == null ? "Your all costs" : "Your costs from " + trip.getName());
+    }
 
     @PostConstruct
     public void init() {
         var currencies = currencyService.getAll();
 
-        var title = new H1("Cost page");
-
         var addCostModal = new AddCostModal(currencies);
-
-        TextField searchTextField = buildSearchbar();
+        var searchTextField = buildSearchbar();
 
         var searchAndCreateLayout = new HorizontalLayout(searchTextField, addCostModal);
         searchAndCreateLayout.setAlignItems(Alignment.CENTER);
 
-        this.grid = buildCostGrid();
+        this.virtualList = createVirtualList();
 
-        add(title, searchAndCreateLayout, grid);
+        super.setHeightFull();
+
+        add(title, searchAndCreateLayout, virtualList);
+    }
+
+    private final ComponentRenderer<Component, CostDTO> costComponentRenderer = new ComponentRenderer<>(
+            cost -> {
+                HorizontalLayout cardLayout = new HorizontalLayout();
+                cardLayout.setMargin(true);
+
+                VerticalLayout infoLayout = new VerticalLayout();
+                infoLayout.setSpacing(false);
+                infoLayout.setPadding(false);
+
+                var salary = new Text(cost.getValue() + " " + cost.getValueCurrency());
+
+                var nameBadge = new HorizontalLayout(new H4(cost.getName()), salary);
+                nameBadge.setAlignItems(Alignment.CENTER);
+
+                infoLayout.add(nameBadge, new Div(new Text(cost.getDescription())), new Div(mapBadges(cost)));
+
+                VerticalLayout moreDetailsLayout = new VerticalLayout();
+                moreDetailsLayout.setSpacing(false);
+                moreDetailsLayout.setPadding(false);
+
+                moreDetailsLayout.add(createRow("From work trip: ", new Text(cost.getTripName())));
+                moreDetailsLayout.add(createRow("Created at: ", new Text(cost.getCreatedAt().toString())));
+
+                infoLayout.add(new Details("More details", moreDetailsLayout));
+
+                cardLayout.add(infoLayout);
+                return cardLayout;
+            });
+
+    private Div createRow(String title, Component... components) {
+        var rowLayout = new HorizontalLayout(new H5(title));
+        rowLayout.add(components);
+        rowLayout.setAlignItems(Alignment.CENTER);
+        return new Div(rowLayout);
+    }
+
+    public VirtualList<CostDTO> createVirtualList() {
+        VirtualList<CostDTO> list = new VirtualList<>();
+        list.setItems(fetchFakeCosts());
+        list.setRenderer(costComponentRenderer);
+        list.setHeight("100%");
+        return list;
     }
 
     private TextField buildSearchbar() {
@@ -58,7 +127,7 @@ public class CostView extends VerticalLayout {
         searchTextField.setPlaceholder("Search");
         searchTextField.setPrefixComponent(VaadinIcon.SEARCH.create());
         searchTextField.addValueChangeListener(event -> {
-            grid.setItems(fetchCosts().stream().filter(costDTO -> costDTO.getName().contains(event.getValue())).toList());
+            virtualList.setItems(fetchFakeCosts().stream().filter(costDTO -> costDTO.getName().contains(event.getValue())).toList());
         });
         searchTextField.setWidth("800px");
         return searchTextField;
@@ -71,48 +140,58 @@ public class CostView extends VerticalLayout {
         grid.addColumn(CostDTO::getId).setHeader("ID");
         grid.addColumn(CostDTO::getName).setHeader("Name");
         grid.addColumn(CostDTO::getDescription).setHeader("Description");
-        grid.addColumn(CostDTO::getAmount).setHeader("Money");
-        grid.addColumn(CostDTO::getCurrencyAmount).setHeader("Currency");
+        grid.addColumn(CostDTO::getValue).setHeader("Money");
+        grid.addColumn(CostDTO::getValueCurrency).setHeader("Currency");
 
         grid.addComponentColumn(this::mapBadges).setHeader("Tags").setAutoWidth(true);
 
         // TODO: implement fetching real data
-        grid.setItems(fetchCosts());
+        grid.setItems(fetchFakeCosts());
 
         return grid;
     }
 
-    private List<CostDTO> fetchCosts() {
+    private List<CostDTO> fetchFakeCosts() {
         return List.of(CostDTO.builder().id(1L)
                         .name("Milk")
                         .description("Very good milk from Molokia")
-                        .amount(BigDecimal.valueOf(2000))
-                        .currencyAmount("USD").badges(Set.of("Travel", "Food"))
+                        .value(BigDecimal.valueOf(2000))
+                        .valueCurrency("USD")
+                        .badges(Set.of("Travel", "Food"))
+                        .tripName("Trip #1")
+                        .createdAt(LocalDateTime.now())
                         .build(),
                 CostDTO.builder().id(2L)
                         .name("Butter")
                         .description("Bought butter from ATB")
-                        .amount(BigDecimal.valueOf(21))
-                        .currencyAmount("USD").badges(Set.of("Sales"))
+                        .value(BigDecimal.valueOf(21))
+                        .valueCurrency("USD")
+                        .badges(Set.of("Sales"))
+                        .tripName("Trip #3")
+                        .createdAt(LocalDateTime.now())
                         .build(),
                 CostDTO.builder().id(3L)
                         .name("Water")
                         .description("Morshynska")
-                        .amount(BigDecimal.valueOf(33))
-                        .currencyAmount("USD").badges(Set.of("Other"))
+                        .value(BigDecimal.valueOf(33))
+                        .valueCurrency("USD")
+                        .badges(Set.of("Other"))
+                        .tripName("Trip #3")
+                        .createdAt(LocalDateTime.now())
                         .build(),
                 CostDTO.builder().id(4L)
                         .name("Sprite")
                         .description("Not cola")
-                        .amount(BigDecimal.valueOf(10))
-                        .currencyAmount("USD").badges(Set.of("Work"))
+                        .value(BigDecimal.valueOf(10))
+                        .valueCurrency("USD")
+                        .badges(Set.of("Work"))
+                        .tripName("Trip #5")
+                        .createdAt(LocalDateTime.now())
                         .build());
     }
 
-
     private Span mapBadges(CostDTO costDTO) {
         var badges = costDTO.getBadges().stream().map(Badge::new).toArray(Badge[]::new);
-
         return new Span(badges);
     }
 }

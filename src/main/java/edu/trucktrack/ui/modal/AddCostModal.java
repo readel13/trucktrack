@@ -27,11 +27,10 @@ public class AddCostModal extends VerticalLayout {
 
     private final TextField name = new TextField("Name", "name of cost");
     private final TextField description = new TextField("Description", "description of cost");
+    private final MultiSelectComboBox<String> badges;
 
     private final Binder<CostDTO> costDTOBinder;
     private final Dialog dialog = new Dialog();
-
-    private final MultiSelectComboBox<String> badges;
     private final Button saveButton = buildSaveButton();
     private final Button cancelButton = new Button("Cancel", e -> dialog.close());
     private final Button openModalButton = new Button("Create costs", e -> dialog.open());
@@ -53,11 +52,11 @@ public class AddCostModal extends VerticalLayout {
 
         costDTOBinder.forField(moneyField).bind(
                 costDTO -> FastMoney.of(
-                        costDTO.getAmount() != null ? costDTO.getAmount() : moneyField.getValue().getNumber(),
-                        costDTO.getCurrencyAmount() != null ? costDTO.getCurrencyAmount() : moneyField.getValue().getCurrency().getCurrencyCode()),
+                        costDTO.getValue() != null ? costDTO.getValue() : moneyField.getValue().getNumber(),
+                        costDTO.getValueCurrency() != null ? costDTO.getValueCurrency() : moneyField.getValue().getCurrency().getCurrencyCode()),
                 (costDTO, moneyField) -> {
-                    costDTO.setAmount(BigDecimal.valueOf(moneyField.getNumber().doubleValue()));
-                    costDTO.setCurrencyAmount(moneyField.getCurrency().getCurrencyCode());
+                    costDTO.setValue(BigDecimal.valueOf(moneyField.getNumber().doubleValue()));
+                    costDTO.setValueCurrency(moneyField.getCurrency().getCurrencyCode());
                 }
         );
 

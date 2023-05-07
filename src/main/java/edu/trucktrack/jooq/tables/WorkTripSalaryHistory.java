@@ -11,11 +11,11 @@ import java.time.LocalDateTime;
 import java.util.function.Function;
 
 import org.jooq.Field;
-import org.jooq.Function6;
+import org.jooq.Function5;
 import org.jooq.Identity;
 import org.jooq.Name;
 import org.jooq.Records;
-import org.jooq.Row6;
+import org.jooq.Row5;
 import org.jooq.Schema;
 import org.jooq.SelectField;
 import org.jooq.Table;
@@ -58,11 +58,6 @@ public class WorkTripSalaryHistory extends TableImpl<WorkTripSalaryHistoryRecord
      * The column <code>public.work_trip_salary_history.trip_id</code>.
      */
     public final TableField<WorkTripSalaryHistoryRecord, Integer> TRIP_ID = createField(DSL.name("trip_id"), SQLDataType.INTEGER.nullable(false), this, "");
-
-    /**
-     * The column <code>public.work_trip_salary_history.salary_type</code>.
-     */
-    public final TableField<WorkTripSalaryHistoryRecord, Integer> SALARY_TYPE = createField(DSL.name("salary_type"), SQLDataType.INTEGER.nullable(false), this, "");
 
     /**
      * The column <code>public.work_trip_salary_history.salary_rate</code>.
@@ -166,18 +161,18 @@ public class WorkTripSalaryHistory extends TableImpl<WorkTripSalaryHistoryRecord
     }
 
     // -------------------------------------------------------------------------
-    // Row6 type methods
+    // Row5 type methods
     // -------------------------------------------------------------------------
 
     @Override
-    public Row6<Long, Integer, Integer, Float, Integer, LocalDateTime> fieldsRow() {
-        return (Row6) super.fieldsRow();
+    public Row5<Long, Integer, Float, Integer, LocalDateTime> fieldsRow() {
+        return (Row5) super.fieldsRow();
     }
 
     /**
      * Convenience mapping calling {@link SelectField#convertFrom(Function)}.
      */
-    public <U> SelectField<U> mapping(Function6<? super Long, ? super Integer, ? super Integer, ? super Float, ? super Integer, ? super LocalDateTime, ? extends U> from) {
+    public <U> SelectField<U> mapping(Function5<? super Long, ? super Integer, ? super Float, ? super Integer, ? super LocalDateTime, ? extends U> from) {
         return convertFrom(Records.mapping(from));
     }
 
@@ -185,7 +180,7 @@ public class WorkTripSalaryHistory extends TableImpl<WorkTripSalaryHistoryRecord
      * Convenience mapping calling {@link SelectField#convertFrom(Class,
      * Function)}.
      */
-    public <U> SelectField<U> mapping(Class<U> toType, Function6<? super Long, ? super Integer, ? super Integer, ? super Float, ? super Integer, ? super LocalDateTime, ? extends U> from) {
+    public <U> SelectField<U> mapping(Class<U> toType, Function5<? super Long, ? super Integer, ? super Float, ? super Integer, ? super LocalDateTime, ? extends U> from) {
         return convertFrom(toType, Records.mapping(from));
     }
 }

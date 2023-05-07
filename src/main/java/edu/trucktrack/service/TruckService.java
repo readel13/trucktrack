@@ -40,4 +40,9 @@ public class TruckService {
                 .map(mapper::toDTO)
                 .toList();
     }
+
+
+    public List<TruckDTO> getAllAvailableForEmployee(Long employeeId) {
+        return truckJooqRepository.getAllAvailableForEmployee(employeeId);
+    }
 }

@@ -7,6 +7,12 @@ import lombok.Data;
 @Builder(toBuilder = true)
 public class FilterBy {
 
+    private Long id;
+
+    private String name;
+
+    private Long tripId;
+
     private Integer companyId;
 
     private Integer employeeId;

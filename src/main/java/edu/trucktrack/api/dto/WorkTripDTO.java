@@ -18,11 +18,19 @@ public class WorkTripDTO {
 
     private String description;
 
-    private SimpleEmployeeDTO employeeDTO;
+    private SimpleEmployeeDTO employee;
+
+    private Long truckId;
+
+    private String truckName;
 
     private Integer salary;
 
-    private Integer currencyId;
+    private String salaryType;
+
+    private Integer costs;
+
+    private String currency;
 
     private boolean active;
 
