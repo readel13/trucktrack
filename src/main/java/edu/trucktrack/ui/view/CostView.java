@@ -22,11 +22,18 @@ import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import edu.trucktrack.api.dto.CostDTO;
+import edu.trucktrack.api.dto.EmployeeExpensesDTO;
+import edu.trucktrack.api.dto.TagDTO;
 import edu.trucktrack.api.dto.WorkTripDTO;
+import edu.trucktrack.api.request.FilterBy;
+import edu.trucktrack.api.request.SearchCriteriaRequest;
+import edu.trucktrack.entity.EmployeeEntity;
 import edu.trucktrack.service.CurrencyService;
+import edu.trucktrack.service.ExpensesService;
 import edu.trucktrack.service.WorkTripService;
 import edu.trucktrack.ui.MainLayout;
 import edu.trucktrack.ui.modal.AddCostModal;
+import edu.trucktrack.util.SecurityUtils;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.security.PermitAll;
 import lombok.RequiredArgsConstructor;
@@ -35,6 +42,7 @@ import org.vaadin.addons.badge.Badge;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 
@@ -45,11 +53,19 @@ import java.util.Set;
 public class CostView extends VerticalLayout implements BeforeEnterObserver {
 
     private WorkTripDTO trip;
-    private VirtualList<CostDTO> virtualList;
+    private VirtualList<EmployeeExpensesDTO> virtualList;
+
+    private final SecurityUtils securityUtils;
 
     private final CurrencyService currencyService;
 
     private final WorkTripService workTripService;
+
+    private final ExpensesService expensesService;
+
+    private EmployeeEntity currentEmployee;
+
+    private SearchCriteriaRequest searchCriteriaRequest;
 
     private final H1 title = new H1();
 
@@ -57,8 +73,11 @@ public class CostView extends VerticalLayout implements BeforeEnterObserver {
     public void beforeEnter(BeforeEnterEvent event) {
         var tripId = event.getRouteParameters().get("tripId").map(Long::valueOf).orElse(null);
         this.trip = workTripService.getById(tripId);
+        this.searchCriteriaRequest = buildInitialCriteriaRequest();
 
-        title.setText(tripId == null ? "Your all costs" : "Your costs from " + trip.getName());
+        virtualList.setItems(fetchData());
+
+        title.setText(tripId == null ? "Your all costs" : "Your costs from %s trip ".formatted(trip.getName()));
     }
 
     @PostConstruct
@@ -71,6 +90,7 @@ public class CostView extends VerticalLayout implements BeforeEnterObserver {
         var searchAndCreateLayout = new HorizontalLayout(searchTextField, addCostModal);
         searchAndCreateLayout.setAlignItems(Alignment.CENTER);
 
+        this.currentEmployee = securityUtils.getCurrentEmployee();
         this.virtualList = createVirtualList();
 
         super.setHeightFull();
@@ -78,7 +98,16 @@ public class CostView extends VerticalLayout implements BeforeEnterObserver {
         add(title, searchAndCreateLayout, virtualList);
     }
 
-    private final ComponentRenderer<Component, CostDTO> costComponentRenderer = new ComponentRenderer<>(
+    private SearchCriteriaRequest buildInitialCriteriaRequest() {
+        return SearchCriteriaRequest.builder()
+                .filterBy(FilterBy.builder()
+                        .companyId(currentEmployee.getCompany().getId().intValue())
+                        .tripId(Optional.ofNullable(trip).map(WorkTripDTO::getId).orElse(0L))
+                        .build())
+                .build();
+    }
+
+    private final ComponentRenderer<Component, EmployeeExpensesDTO> costComponentRenderer = new ComponentRenderer<>(
             cost -> {
                 HorizontalLayout cardLayout = new HorizontalLayout();
                 cardLayout.setMargin(true);
@@ -87,7 +116,7 @@ public class CostView extends VerticalLayout implements BeforeEnterObserver {
                 infoLayout.setSpacing(false);
                 infoLayout.setPadding(false);
 
-                var salary = new Text(cost.getValue() + " " + cost.getValueCurrency());
+                var salary = new Text(cost.getValue() + " " + cost.getCurrency());
 
                 var nameBadge = new HorizontalLayout(new H4(cost.getName()), salary);
                 nameBadge.setAlignItems(Alignment.CENTER);
@@ -114,9 +143,8 @@ public class CostView extends VerticalLayout implements BeforeEnterObserver {
         return new Div(rowLayout);
     }
 
-    public VirtualList<CostDTO> createVirtualList() {
-        VirtualList<CostDTO> list = new VirtualList<>();
-        list.setItems(fetchFakeCosts());
+    public VirtualList<EmployeeExpensesDTO> createVirtualList() {
+        VirtualList<EmployeeExpensesDTO> list = new VirtualList<>();
         list.setRenderer(costComponentRenderer);
         list.setHeight("100%");
         return list;
@@ -127,7 +155,8 @@ public class CostView extends VerticalLayout implements BeforeEnterObserver {
         searchTextField.setPlaceholder("Search");
         searchTextField.setPrefixComponent(VaadinIcon.SEARCH.create());
         searchTextField.addValueChangeListener(event -> {
-            virtualList.setItems(fetchFakeCosts().stream().filter(costDTO -> costDTO.getName().contains(event.getValue())).toList());
+            searchCriteriaRequest.getFilterBy().setName(event.getValue());
+            virtualList.setItems(fetchData());
         });
         searchTextField.setWidth("800px");
         return searchTextField;
@@ -143,12 +172,16 @@ public class CostView extends VerticalLayout implements BeforeEnterObserver {
         grid.addColumn(CostDTO::getValue).setHeader("Money");
         grid.addColumn(CostDTO::getValueCurrency).setHeader("Currency");
 
-        grid.addComponentColumn(this::mapBadges).setHeader("Tags").setAutoWidth(true);
+//        grid.addComponentColumn(this::mapBadges).setHeader("Tags").setAutoWidth(true);
 
         // TODO: implement fetching real data
         grid.setItems(fetchFakeCosts());
 
         return grid;
+    }
+
+    public List<EmployeeExpensesDTO> fetchData() {
+        return expensesService.get(searchCriteriaRequest);
     }
 
     private List<CostDTO> fetchFakeCosts() {
@@ -190,8 +223,8 @@ public class CostView extends VerticalLayout implements BeforeEnterObserver {
                         .build());
     }
 
-    private Span mapBadges(CostDTO costDTO) {
-        var badges = costDTO.getBadges().stream().map(Badge::new).toArray(Badge[]::new);
+    private Span mapBadges(EmployeeExpensesDTO costDTO) {
+        var badges = costDTO.getTags().stream().map(TagDTO::getName).map(Badge::new).toArray(Badge[]::new);
         return new Span(badges);
     }
 }

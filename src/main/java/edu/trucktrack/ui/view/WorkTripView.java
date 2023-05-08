@@ -71,13 +71,8 @@ public class WorkTripView extends VerticalLayout {
         searchTextField.setWidth("800px");
         searchTextField.setPlaceholder("Search");
         searchTextField.setPrefixComponent(VaadinIcon.SEARCH.create());
-        searchTextField.addValueChangeListener(value -> {
-            criteriaRequest = criteriaRequest.toBuilder().filterBy(
-                            criteriaRequest.getFilterBy().toBuilder()
-                                    .name(value.getValue())
-                                    .build()
-                    )
-                    .build();
+        searchTextField.addValueChangeListener(event -> {
+            criteriaRequest.getFilterBy().setName(event.getValue());
             updateGridCallBack.get();
         });
 
