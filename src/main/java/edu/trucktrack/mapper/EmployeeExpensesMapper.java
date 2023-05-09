@@ -1,11 +1,42 @@
 package edu.trucktrack.mapper;
 
 import edu.trucktrack.api.dto.EmployeeExpensesDTO;
+import edu.trucktrack.entity.EmployeeExpensesEntity;
+import edu.trucktrack.entity.enums.Currency;
 import edu.trucktrack.repository.jooq.EmployeeExpensesEntityRecord;
+import org.mapstruct.InjectionStrategy;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.Named;
+import org.springframework.beans.factory.annotation.Autowired;
 
-@Mapper
-public interface EmployeeExpensesMapper {
+@Mapper(
+        componentModel = "spring",
+        injectionStrategy = InjectionStrategy.CONSTRUCTOR,
+        uses = {WorkTripMapper.class}
+)
+public abstract class EmployeeExpensesMapper {
 
-    EmployeeExpensesDTO toDTO(EmployeeExpensesEntityRecord entityRecord);
+    @Autowired
+    protected WorkTripMapper workTripMapper;
+
+    @Mapping(target = "trip", expression = "java(workTripMapper.toEntity(dto.getTrip()))")
+    @Mapping(source = "currency", target = "currencyId", qualifiedByName = "mapCurrencyLabelToCurrencyId")
+    public abstract EmployeeExpensesEntity toEntity(EmployeeExpensesDTO dto);
+
+    @Mapping(source = "tripId", target = "trip.id")
+    @Mapping(source = "tripName", target = "trip.name")
+    @Mapping(source = "employeeId", target = "employee.id")
+    @Mapping(source = "employeeName", target = "employee.name")
+    public abstract EmployeeExpensesDTO toDTO(EmployeeExpensesEntityRecord entityRecord);
+
+    @Named("mapCurrencyId")
+    static String mapCurrencyId(Integer currencyId) {
+        return Currency.findById(currencyId).label();
+    }
+
+    @Named("mapCurrencyLabel")
+    static Integer mapCurrencyLabel(String label) {
+        return Currency.findByLabel(label).id();
+    }
 }

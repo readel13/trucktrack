@@ -8,7 +8,6 @@ import lombok.RequiredArgsConstructor;
 import org.jooq.DSLContext;
 import org.springframework.stereotype.Repository;
 
-import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -16,6 +15,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.jooq.impl.DSL.field;
+import static org.jooq.impl.DSL.inline;
 
 @Repository
 @RequiredArgsConstructor
@@ -23,10 +23,20 @@ public class TagJooqRepository {
 
     private final DSLContext ctx;
 
-    public Map<Integer, List<TagDTO>> getForExpenses(Set<Long> expensesIds) {
+    public List<TagDTO> getAll() {
+        var tag = new Tag(Names.TAG);
+
+        return ctx.select(
+                        tag.ID.as(Names.ID),
+                        inline(0).as(Names.EXPENSE_ID),
+                        tag.NAME.as(Names.NAME))
+                .from(tag)
+                .fetchInto(TagDTO.class);
+    }
+
+    public Map<Integer, Set<TagDTO>> getForExpenses(Set<Long> expensesIds) {
         var tag = new Tag(Names.TAG);
         var eet = new EmployeeExpensesTag(Names.EET);
-
 
         return ctx.select(
                         tag.ID.as(Names.ID),
@@ -39,7 +49,7 @@ public class TagJooqRepository {
                 .collect(
                         Collectors.groupingBy(
                                 r -> r.get(field(Names.EXPENSE_ID, Integer.class)),
-                                Collectors.mapping(r -> r.into(TagDTO.class), Collectors.toCollection(ArrayList::new))
+                                Collectors.mapping(r -> r.into(TagDTO.class), Collectors.toCollection(LinkedHashSet::new))
                         )
                 );
     }

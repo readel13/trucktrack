@@ -4,7 +4,7 @@ import lombok.Builder;
 import lombok.Data;
 
 import java.time.LocalDateTime;
-import java.util.List;
+import java.util.Set;
 
 @Data
 @Builder(toBuilder = true)
@@ -16,15 +16,15 @@ public class EmployeeExpensesDTO {
 
     private String description;
 
-    private Long tripId;
+    private SimpleEmployeeDTO employee;
 
-    private String tripName;
+    private WorkTripDTO trip;
 
     private Long value;
 
     private String currency;
 
-    private List<TagDTO> tags;
+    private Set<TagDTO> tags;
 
     private LocalDateTime createdAt;
 }

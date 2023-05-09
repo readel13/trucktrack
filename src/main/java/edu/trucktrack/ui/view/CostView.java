@@ -3,9 +3,6 @@ package edu.trucktrack.ui.view;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.details.Details;
-import com.vaadin.flow.component.grid.Grid;
-import com.vaadin.flow.component.gridpro.GridPro;
-import com.vaadin.flow.component.gridpro.GridProVariant;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.H4;
@@ -28,7 +25,7 @@ import edu.trucktrack.api.dto.WorkTripDTO;
 import edu.trucktrack.api.request.FilterBy;
 import edu.trucktrack.api.request.SearchCriteriaRequest;
 import edu.trucktrack.entity.EmployeeEntity;
-import edu.trucktrack.service.CurrencyService;
+import edu.trucktrack.repository.jooq.TagJooqRepository;
 import edu.trucktrack.service.ExpensesService;
 import edu.trucktrack.service.WorkTripService;
 import edu.trucktrack.ui.MainLayout;
@@ -41,9 +38,11 @@ import org.vaadin.addons.badge.Badge;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Supplier;
 
 
 @PermitAll
@@ -57,15 +56,18 @@ public class CostView extends VerticalLayout implements BeforeEnterObserver {
 
     private final SecurityUtils securityUtils;
 
-    private final CurrencyService currencyService;
-
     private final WorkTripService workTripService;
 
     private final ExpensesService expensesService;
 
+    // TODO: wire service
+    private final TagJooqRepository tagJooqRepository;
+
     private EmployeeEntity currentEmployee;
 
     private SearchCriteriaRequest searchCriteriaRequest;
+
+    private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
     private final H1 title = new H1();
 
@@ -73,28 +75,24 @@ public class CostView extends VerticalLayout implements BeforeEnterObserver {
     public void beforeEnter(BeforeEnterEvent event) {
         var tripId = event.getRouteParameters().get("tripId").map(Long::valueOf).orElse(null);
         this.trip = workTripService.getById(tripId);
+        this.currentEmployee = securityUtils.getCurrentEmployee();
         this.searchCriteriaRequest = buildInitialCriteriaRequest();
+        this.virtualList = createVirtualList();
 
-        virtualList.setItems(fetchData());
+        Supplier<Object> updateListCallback = () -> {
+            virtualList.setItems(fetchData());
+            return null;
+        };
 
-        title.setText(tripId == null ? "Your all costs" : "Your costs from %s trip ".formatted(trip.getName()));
-    }
+        var addCostModal = new AddCostModal(trip, updateListCallback, expensesService, securityUtils, tagJooqRepository);
 
-    @PostConstruct
-    public void init() {
-        var currencies = currencyService.getAll();
-
-        var addCostModal = new AddCostModal(currencies);
         var searchTextField = buildSearchbar();
-
         var searchAndCreateLayout = new HorizontalLayout(searchTextField, addCostModal);
         searchAndCreateLayout.setAlignItems(Alignment.CENTER);
 
-        this.currentEmployee = securityUtils.getCurrentEmployee();
-        this.virtualList = createVirtualList();
-
         super.setHeightFull();
 
+        title.setText(tripId == null ? "Your all costs" : "Your costs from %s trip ".formatted(trip.getName()));
         add(title, searchAndCreateLayout, virtualList);
     }
 
@@ -127,8 +125,8 @@ public class CostView extends VerticalLayout implements BeforeEnterObserver {
                 moreDetailsLayout.setSpacing(false);
                 moreDetailsLayout.setPadding(false);
 
-                moreDetailsLayout.add(createRow("From work trip: ", new Text(cost.getTripName())));
-                moreDetailsLayout.add(createRow("Created at: ", new Text(cost.getCreatedAt().toString())));
+                moreDetailsLayout.add(createRow("From work trip: ", new Text(cost.getTrip().getName())));
+                moreDetailsLayout.add(createRow("Created at: ", new Text(cost.getCreatedAt().format(dateTimeFormatter))));
 
                 infoLayout.add(new Details("More details", moreDetailsLayout));
 
@@ -147,6 +145,7 @@ public class CostView extends VerticalLayout implements BeforeEnterObserver {
         VirtualList<EmployeeExpensesDTO> list = new VirtualList<>();
         list.setRenderer(costComponentRenderer);
         list.setHeight("100%");
+        list.setItems(fetchData());
         return list;
     }
 
@@ -160,24 +159,6 @@ public class CostView extends VerticalLayout implements BeforeEnterObserver {
         });
         searchTextField.setWidth("800px");
         return searchTextField;
-    }
-
-    private Grid<CostDTO> buildCostGrid() {
-        GridPro<CostDTO> grid = new GridPro<>();
-        grid.addThemeVariants(GridProVariant.LUMO_COMPACT, GridProVariant.LUMO_WRAP_CELL_CONTENT);
-
-        grid.addColumn(CostDTO::getId).setHeader("ID");
-        grid.addColumn(CostDTO::getName).setHeader("Name");
-        grid.addColumn(CostDTO::getDescription).setHeader("Description");
-        grid.addColumn(CostDTO::getValue).setHeader("Money");
-        grid.addColumn(CostDTO::getValueCurrency).setHeader("Currency");
-
-//        grid.addComponentColumn(this::mapBadges).setHeader("Tags").setAutoWidth(true);
-
-        // TODO: implement fetching real data
-        grid.setItems(fetchFakeCosts());
-
-        return grid;
     }
 
     public List<EmployeeExpensesDTO> fetchData() {

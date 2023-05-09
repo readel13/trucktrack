@@ -1,11 +1,15 @@
 package edu.trucktrack.entity;
 
+import edu.trucktrack.jooq.tables.WorkTrip;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
@@ -19,6 +23,8 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -36,6 +42,18 @@ public class EmployeeExpensesEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     private EmployeeEntity employee;
 
+    @JoinColumn(name = "trip_id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    private WorkTripEntity trip;
+
+    @ManyToMany(cascade = CascadeType.MERGE )
+    @JoinTable(
+            name = "employee_expenses_tag",
+            joinColumns = { @JoinColumn(name = "expense_id") },
+            inverseJoinColumns = { @JoinColumn(name = "tag_id") }
+    )
+    private Set<TagEntity> tags = new HashSet<>();
+
     private String name;
 
     private String description;
@@ -50,7 +68,6 @@ public class EmployeeExpensesEntity {
     public void onCreate() {
         createdAt = LocalDateTime.now();
     }
-
 
     @Override
     public boolean equals(Object o) {

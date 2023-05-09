@@ -14,6 +14,10 @@ public class EmployeeExpensesEntityRecord {
 
     private String description;
 
+    private Long employeeId;
+
+    private String employeeName;
+
     private Long tripId;
 
     private String tripName;
