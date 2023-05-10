@@ -138,7 +138,7 @@ public class CostView extends VerticalLayout implements BeforeEnterObserver {
 
                     var contextMenu = new ContextMenu();
                     contextMenu.setTarget(cardLayout);
-                    contextMenu.addItem("Update", event -> {
+                    contextMenu.addItem("Edit", event -> {
                         var expensesModal = new ExpensesModal(cost, true, trip, updateListCallback, expensesService, securityUtils, tagJooqRepository);
                         add(expensesModal);
                         expensesModal.getDialog().open();
