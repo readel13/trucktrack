@@ -159,7 +159,7 @@ public class TripModal extends VerticalLayout {
                 workTripService.saveOrUpdate(tripDTO);
                 updateGridCallback.get();
 
-                Notification notification = Notification.show("Trip Added!");
+                Notification notification = Notification.show(create ? "Trip Added!" : "Trip Updated!");
                 notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
 
                 dialog.close();

@@ -21,41 +21,50 @@ import edu.trucktrack.entity.enums.Currency;
 import edu.trucktrack.repository.jooq.TagJooqRepository;
 import edu.trucktrack.service.ExpensesService;
 import edu.trucktrack.util.SecurityUtils;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.javamoney.moneta.FastMoney;
 import org.vaadin.addons.MoneyField;
 
+import java.time.LocalDateTime;
+import java.util.Optional;
 import java.util.function.Supplier;
 
 @Slf4j
-public class AddCostModal extends VerticalLayout {
+public class ExpensesModal extends VerticalLayout {
 
     private final ExpensesService expensesService;
     private final TagJooqRepository tagJooqRepository;
     private final Binder<EmployeeExpensesDTO> binder;
 
-    private final Supplier<Object> updateListCallback;
+    private final boolean update;
     private final WorkTripDTO currentTrip;
+    private final Supplier<Object> updateListCallback;
 
     private final EmployeeEntity currentEmployee;
 
     private final MoneyField moneyField;
+    private final Select<Long> id = new Select<>();
     private final TextField name = new TextField("Name", "name of cost");
     private final TextField description = new TextField("Description", "description of cost");
     private final Select<SimpleEmployeeDTO> employee = new Select<>();
     private final Select<WorkTripDTO> trip = new Select<>();
     private final MultiSelectComboBox<TagDTO> tags;
+    private final Select<LocalDateTime> createdAt = new Select<>();
 
+    @Getter
     private final Dialog dialog = new Dialog();
     private final Button saveButton = buildSaveButton();
     private final Button cancelButton = new Button("Cancel", e -> dialog.close());
-    private final Button openModalButton = new Button("Create costs", e -> dialog.open());
+    private final Button openModalButton;
 
-    public AddCostModal(WorkTripDTO currentTrip,
-                        Supplier<Object> updateListCallback,
-                        ExpensesService expensesService,
-                        SecurityUtils securityUtils,
-                        TagJooqRepository tagJooqRepository) {
+    public ExpensesModal(EmployeeExpensesDTO expensesDTO,
+                         boolean update, WorkTripDTO currentTrip,
+                         Supplier<Object> updateListCallback,
+                         ExpensesService expensesService,
+                         SecurityUtils securityUtils,
+                         TagJooqRepository tagJooqRepository) {
+        this.update = update;
         this.updateListCallback = updateListCallback;
         this.expensesService = expensesService;
         this.tagJooqRepository = tagJooqRepository;
@@ -64,15 +73,21 @@ public class AddCostModal extends VerticalLayout {
         this.moneyField = getMoneyField();
         this.tags = buildBadgeMultiSelect();
 
+        this.openModalButton = update ? null : new Button("Create costs", e -> dialog.open());
+
         trip.setLabel("For trip");
         trip.setItemLabelGenerator(WorkTripDTO::getName);
-        trip.setItems(currentTrip);
+        //TODO: if currentTrip null, get all avaialble trips
+        trip.setItems(Optional.ofNullable(expensesDTO).map(EmployeeExpensesDTO::getTrip).orElse(currentTrip));
         trip.setSizeFull();
 
         this.name.setSizeFull();
         this.description.setSizeFull();
 
         this.binder = buildBinder();
+        if (expensesDTO != null) {
+            binder.readBean(expensesDTO);
+        }
 
         buildDialog();
     }
@@ -90,17 +105,19 @@ public class AddCostModal extends VerticalLayout {
                 }
         );
 
+        binder.forField(id).bind(EmployeeExpensesDTO::getId, EmployeeExpensesDTO::setId);
         binder.forField(name).bind(EmployeeExpensesDTO::getName, EmployeeExpensesDTO::setName);
         binder.forField(description).bind(EmployeeExpensesDTO::getDescription, EmployeeExpensesDTO::setDescription);
         binder.forField(tags).bind(EmployeeExpensesDTO::getTags, EmployeeExpensesDTO::setTags);
         binder.forField(employee).bind(EmployeeExpensesDTO::getEmployee, EmployeeExpensesDTO::setEmployee);
         binder.forField(trip).bind(EmployeeExpensesDTO::getTrip, EmployeeExpensesDTO::setTrip);
+        binder.forField(createdAt).bind(EmployeeExpensesDTO::getCreatedAt, EmployeeExpensesDTO::setCreatedAt);
 
         return binder;
     }
 
     private void buildDialog() {
-        dialog.setHeaderTitle("Create new Costs!");
+        dialog.setHeaderTitle(update ? "Update existing cost" : "Create new Costs!");
 
         var dialogLayout = createDialogLayout();
 
@@ -108,11 +125,15 @@ public class AddCostModal extends VerticalLayout {
         dialog.getFooter().add(cancelButton);
         dialog.getFooter().add(saveButton);
 
-        add(dialog, openModalButton);
+        if (!update) {
+            add(openModalButton);
+        }
+
+        add(dialog);
     }
 
     private Button buildSaveButton() {
-        Button saveButton = new Button("Save cost");
+        Button saveButton = new Button(update ? "Save cost" : "Update cost");
         saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
 
         saveButton.addClickListener(event -> {
@@ -124,7 +145,7 @@ public class AddCostModal extends VerticalLayout {
                 log.info("Collected info: {}", expensesDTO);
                 expensesService.saveOrUpdate(expensesDTO);
 
-                Notification notification = Notification.show("Cost Added!");
+                Notification notification = Notification.show(update ? "Cost updated" : "Cost Added!");
                 notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
 
                 updateListCallback.get();

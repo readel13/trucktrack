@@ -2,6 +2,7 @@ package edu.trucktrack.ui.view;
 
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Text;
+import com.vaadin.flow.component.contextmenu.ContextMenu;
 import com.vaadin.flow.component.details.Details;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H1;
@@ -29,9 +30,8 @@ import edu.trucktrack.repository.jooq.TagJooqRepository;
 import edu.trucktrack.service.ExpensesService;
 import edu.trucktrack.service.WorkTripService;
 import edu.trucktrack.ui.MainLayout;
-import edu.trucktrack.ui.modal.AddCostModal;
+import edu.trucktrack.ui.modal.ExpensesModal;
 import edu.trucktrack.util.SecurityUtils;
-import jakarta.annotation.PostConstruct;
 import jakarta.annotation.security.PermitAll;
 import lombok.RequiredArgsConstructor;
 import org.vaadin.addons.badge.Badge;
@@ -63,6 +63,8 @@ public class CostView extends VerticalLayout implements BeforeEnterObserver {
     // TODO: wire service
     private final TagJooqRepository tagJooqRepository;
 
+    private Supplier<Object> updateListCallback;
+
     private EmployeeEntity currentEmployee;
 
     private SearchCriteriaRequest searchCriteriaRequest;
@@ -79,12 +81,12 @@ public class CostView extends VerticalLayout implements BeforeEnterObserver {
         this.searchCriteriaRequest = buildInitialCriteriaRequest();
         this.virtualList = createVirtualList();
 
-        Supplier<Object> updateListCallback = () -> {
+        this.updateListCallback = () -> {
             virtualList.setItems(fetchData());
             return null;
         };
 
-        var addCostModal = new AddCostModal(trip, updateListCallback, expensesService, securityUtils, tagJooqRepository);
+        var addCostModal = new ExpensesModal(null, false, trip, updateListCallback, expensesService, securityUtils, tagJooqRepository);
 
         var searchTextField = buildSearchbar();
         var searchAndCreateLayout = new HorizontalLayout(searchTextField, addCostModal);
@@ -105,34 +107,50 @@ public class CostView extends VerticalLayout implements BeforeEnterObserver {
                 .build();
     }
 
-    private final ComponentRenderer<Component, EmployeeExpensesDTO> costComponentRenderer = new ComponentRenderer<>(
-            cost -> {
-                HorizontalLayout cardLayout = new HorizontalLayout();
-                cardLayout.setMargin(true);
+    private ComponentRenderer<Component, EmployeeExpensesDTO> getCostComponentRenderer() {
+        return new ComponentRenderer<>(
+                cost -> {
+                    HorizontalLayout cardLayout = new HorizontalLayout();
+                    cardLayout.setMargin(true);
+                    cardLayout.setAlignItems(Alignment.CENTER);
 
-                VerticalLayout infoLayout = new VerticalLayout();
-                infoLayout.setSpacing(false);
-                infoLayout.setPadding(false);
+                    VerticalLayout infoLayout = new VerticalLayout();
+                    infoLayout.setSpacing(false);
+                    infoLayout.setPadding(false);
 
-                var salary = new Text(cost.getValue() + " " + cost.getCurrency());
+                    var salary = new Text(cost.getValue() + " " + cost.getCurrency());
 
-                var nameBadge = new HorizontalLayout(new H4(cost.getName()), salary);
-                nameBadge.setAlignItems(Alignment.CENTER);
+                    var nameBadge = new HorizontalLayout(new H4(cost.getName()), salary);
+                    nameBadge.setAlignItems(Alignment.CENTER);
 
-                infoLayout.add(nameBadge, new Div(new Text(cost.getDescription())), new Div(mapBadges(cost)));
+                    infoLayout.add(nameBadge, new Div(new Text(cost.getDescription())), new Div(mapBadges(cost)));
 
-                VerticalLayout moreDetailsLayout = new VerticalLayout();
-                moreDetailsLayout.setSpacing(false);
-                moreDetailsLayout.setPadding(false);
+                    VerticalLayout moreDetailsLayout = new VerticalLayout();
+                    moreDetailsLayout.setSpacing(false);
+                    moreDetailsLayout.setPadding(false);
 
-                moreDetailsLayout.add(createRow("From work trip: ", new Text(cost.getTrip().getName())));
-                moreDetailsLayout.add(createRow("Created at: ", new Text(cost.getCreatedAt().format(dateTimeFormatter))));
+                    moreDetailsLayout.add(createRow("From work trip: ", new Text(cost.getTrip().getName())));
+                    moreDetailsLayout.add(createRow("Created at: ", new Text(cost.getCreatedAt().format(dateTimeFormatter))));
 
-                infoLayout.add(new Details("More details", moreDetailsLayout));
+                    infoLayout.add(new Details("More details", moreDetailsLayout));
 
-                cardLayout.add(infoLayout);
-                return cardLayout;
-            });
+                    cardLayout.add(infoLayout);
+
+                    var contextMenu = new ContextMenu();
+                    contextMenu.setTarget(cardLayout);
+                    contextMenu.addItem("Update", event -> {
+                        var expensesModal = new ExpensesModal(cost, true, trip, updateListCallback, expensesService, securityUtils, tagJooqRepository);
+                        add(expensesModal);
+                        expensesModal.getDialog().open();
+                    });
+                    contextMenu.addItem("Delete", event -> {
+                        expensesService.deleteById(cost.getId());
+                        virtualList.setItems(fetchData());
+                    });
+
+                    return cardLayout;
+                });
+    }
 
     private Div createRow(String title, Component... components) {
         var rowLayout = new HorizontalLayout(new H5(title));
@@ -143,7 +161,7 @@ public class CostView extends VerticalLayout implements BeforeEnterObserver {
 
     public VirtualList<EmployeeExpensesDTO> createVirtualList() {
         VirtualList<EmployeeExpensesDTO> list = new VirtualList<>();
-        list.setRenderer(costComponentRenderer);
+        list.setRenderer(getCostComponentRenderer());
         list.setHeight("100%");
         list.setItems(fetchData());
         return list;

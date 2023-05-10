@@ -36,9 +36,7 @@ public class TagEntity {
 
     private boolean isSystem;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "created_by_employee_id")
-    private EmployeeEntity createdByEmployee;
+    private Long createdByEmployeeId;
 
     private LocalDateTime createdAt;
 
@@ -46,7 +44,6 @@ public class TagEntity {
     public void onCreate() {
         createdAt = LocalDateTime.now();
     }
-
 
     @Override
     public boolean equals(Object o) {

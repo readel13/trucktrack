@@ -39,16 +39,20 @@ public class ExpensesService {
         return expensesJpaRepository.save(entity);
     }
 
+    public void deleteById(Long id) {
+        expensesJpaRepository.deleteById(id);
+    }
+
     public List<EmployeeExpensesDTO> get(SearchCriteriaRequest criteria) {
         var expenses = expensesJooqRepository.get(criteria);
         var ids = expenses.stream().map(EmployeeExpensesEntityRecord::getId).collect(Collectors.toSet());
 
         var expnseTagMap = tagJooqRepository.getForExpenses(ids);
 
-         return expenses.stream()
-                 .map(mapper::toDTO)
-                 .peek(ex -> ex.setTags(Optional.ofNullable(expnseTagMap.get(ex.getId().intValue())).orElse(Collections.emptySet())))
-                 .toList();
+        return expenses.stream()
+                .map(mapper::toDTO)
+                .peek(ex -> ex.setTags(Optional.ofNullable(expnseTagMap.get(ex.getId().intValue())).orElse(Collections.emptySet())))
+                .toList();
 
     }
 }
