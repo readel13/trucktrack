@@ -23,6 +23,7 @@ public interface Names {
     Name ID = name("id");
 
     Name NAME = name("name");
+    Name IS_SYSTEM = name("is_system");
     Name COMPANY_ID = name("company_id");
     Name EXPENSE_ID = name("expense_id");
     Name TRIP_ID = name("trip_id");
@@ -42,5 +43,6 @@ public interface Names {
     Name VALUE = name("value");
 
     Name CREATED_AT = name("created_at");
+    Name CREATED_BY_EMPLOYEE_ID = name("created_by_employee_id");
     Name CLOSED_AT = name("closed_at");
 }
