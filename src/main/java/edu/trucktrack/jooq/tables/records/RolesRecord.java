@@ -130,6 +130,5 @@ public class RolesRecord extends TableRecordImpl<RolesRecord> implements Record2
 
         setId(id);
         setRole(role);
-        resetChangedOnNotNull();
     }
 }

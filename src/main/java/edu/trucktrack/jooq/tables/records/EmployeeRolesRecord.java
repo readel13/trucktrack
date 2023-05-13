@@ -130,6 +130,5 @@ public class EmployeeRolesRecord extends TableRecordImpl<EmployeeRolesRecord> im
 
         setEmployeeId(employeeId);
         setRoleId(roleId);
-        resetChangedOnNotNull();
     }
 }
