@@ -18,6 +18,8 @@ public interface WorkTripMapper {
     @Mapping(source = "salaryType", target = "salaryType", qualifiedByName = "mapSalaryTypeToEnumName")
     WorkTripDTO toDTO(WorkTripEntity entity);
 
+    WorkTripEntity toSimpleEntity(WorkTripDTO dto);
+
     @Mapping(source = "truckId", target = "truck.id")
     @Mapping(source = "truckName", target = "truck.name")
     @Mapping(source = "currency", target = "currencyId", qualifiedByName = "mapCurrencyLabelToCurrencyId")

@@ -20,8 +20,8 @@ public abstract class EmployeeExpensesMapper {
     @Autowired
     protected WorkTripMapper workTripMapper;
 
-    @Mapping(target = "trip", expression = "java(workTripMapper.toEntity(dto.getTrip()))")
-    @Mapping(source = "currency", target = "currencyId", qualifiedByName = "mapCurrencyLabelToCurrencyId")
+    @Mapping(target = "trip", expression = "java(workTripMapper.toSimpleEntity(dto.getTrip()))")
+    @Mapping(source = "currency", target = "currencyId", qualifiedByName = "mapCurrencyLabel")
     public abstract EmployeeExpensesEntity toEntity(EmployeeExpensesDTO dto);
 
     @Mapping(source = "tripId", target = "trip.id")

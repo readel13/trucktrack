@@ -183,45 +183,6 @@ public class CostView extends VerticalLayout implements BeforeEnterObserver {
         return expensesService.get(searchCriteriaRequest);
     }
 
-    private List<CostDTO> fetchFakeCosts() {
-        return List.of(CostDTO.builder().id(1L)
-                        .name("Milk")
-                        .description("Very good milk from Molokia")
-                        .value(BigDecimal.valueOf(2000))
-                        .valueCurrency("USD")
-                        .badges(Set.of("Travel", "Food"))
-                        .tripName("Trip #1")
-                        .createdAt(LocalDateTime.now())
-                        .build(),
-                CostDTO.builder().id(2L)
-                        .name("Butter")
-                        .description("Bought butter from ATB")
-                        .value(BigDecimal.valueOf(21))
-                        .valueCurrency("USD")
-                        .badges(Set.of("Sales"))
-                        .tripName("Trip #3")
-                        .createdAt(LocalDateTime.now())
-                        .build(),
-                CostDTO.builder().id(3L)
-                        .name("Water")
-                        .description("Morshynska")
-                        .value(BigDecimal.valueOf(33))
-                        .valueCurrency("USD")
-                        .badges(Set.of("Other"))
-                        .tripName("Trip #3")
-                        .createdAt(LocalDateTime.now())
-                        .build(),
-                CostDTO.builder().id(4L)
-                        .name("Sprite")
-                        .description("Not cola")
-                        .value(BigDecimal.valueOf(10))
-                        .valueCurrency("USD")
-                        .badges(Set.of("Work"))
-                        .tripName("Trip #5")
-                        .createdAt(LocalDateTime.now())
-                        .build());
-    }
-
     private Span mapBadges(EmployeeExpensesDTO costDTO) {
         var badges = costDTO.getTags().stream().map(TagDTO::getName).map(Badge::new).toArray(Badge[]::new);
         return new Span(badges);
