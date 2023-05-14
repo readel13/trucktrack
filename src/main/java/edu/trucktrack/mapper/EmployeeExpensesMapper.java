@@ -1,9 +1,9 @@
 package edu.trucktrack.mapper;
 
 import edu.trucktrack.api.dto.EmployeeExpensesDTO;
-import edu.trucktrack.entity.EmployeeExpensesEntity;
-import edu.trucktrack.entity.enums.Currency;
-import edu.trucktrack.repository.jooq.EmployeeExpensesEntityRecord;
+import edu.trucktrack.dao.entity.EmployeeExpensesEntity;
+import edu.trucktrack.dao.entity.enums.Currency;
+import edu.trucktrack.dao.repository.jooq.EmployeeExpensesEntityRecord;
 import org.mapstruct.InjectionStrategy;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

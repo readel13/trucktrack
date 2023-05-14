@@ -37,6 +37,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-devtools'
+    implementation 'org.springframework.cloud:spring-cloud-starter-openfeign:4.0.2'
 
     implementation group: 'com.flowingcode.vaadin.addons', name: 'google-maps', version: '1.8.2'
     implementation 'com.vaadin:vaadin-spring-boot-starter'

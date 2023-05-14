@@ -26,6 +26,8 @@ public class WorkTripDTO {
 
     private Integer salary;
 
+    private Double salaryRate;
+
     private String salaryType;
 
     private Integer costs;

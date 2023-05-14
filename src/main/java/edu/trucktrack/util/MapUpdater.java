@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -26,12 +27,12 @@ public class MapUpdater {
 	private final Lock rLock = lock.readLock();
 	private final Lock wLock = lock.writeLock();
 
-	private Map<String, DriverDataForMapDTO> driverDataForMapDTOMap = new HashMap<>();
-	private Map<String, AndroidTrackerLocationData> locationDataMap = new HashMap<>();
+	private final Map<String, DriverDataForMapDTO> driverDataForMapDTOMap = new HashMap<>();
+	private final Map<String, AndroidTrackerLocationData> locationDataMap = new HashMap<>();
 
 	public MapUpdater(MapService mapService) {
 		this.mapService = mapService;
-		this.addLocationData(new AndroidTrackerLocationData("vasia1@mail.com", 48.15844527759325, 25.726506569491583, 31.1));
+		this.addLocationData(new AndroidTrackerLocationData("superuser@mail.com", 48.15844527759325, 25.726506569491583, 31.1));
 
 	}
 
@@ -71,7 +72,7 @@ public class MapUpdater {
 		wLock.lock();
 		try {
 			if (!locationDataMap.isEmpty()) {
-				locationDataMap.entrySet().forEach(item -> driverDataForMapDTOMap.get(item.getKey()).setLocationData(item.getValue()));
+				locationDataMap.forEach((key, value) -> Optional.ofNullable(driverDataForMapDTOMap.get(key)).ifPresent(v -> v.setLocationData(value)));
 			}
 		} finally {
 			wLock.unlock();
@@ -81,9 +82,6 @@ public class MapUpdater {
 	@Bean
 	@Scheduled(fixedDelay = 2, timeUnit = TimeUnit.SECONDS)
 	public void updateCoordinates() {
-		locationDataMap.forEach((key, value) -> {
-			value.setLongitude(value.getLongitude() + 0.01);
-		});
+		locationDataMap.forEach((key, value) -> value.setLongitude(value.getLongitude() + 0.01));
 	}
-
 }

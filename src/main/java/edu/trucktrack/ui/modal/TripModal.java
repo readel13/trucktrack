@@ -8,17 +8,19 @@ import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.select.Select;
+import com.vaadin.flow.component.textfield.IntegerField;
+import com.vaadin.flow.component.textfield.NumberField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.binder.BeanValidationBinder;
 import com.vaadin.flow.data.binder.Binder;
 import edu.trucktrack.api.dto.SimpleEmployeeDTO;
 import edu.trucktrack.api.dto.TruckDTO;
 import edu.trucktrack.api.dto.WorkTripDTO;
-import edu.trucktrack.entity.EmployeeEntity;
-import edu.trucktrack.entity.enums.Currency;
-import edu.trucktrack.entity.enums.SalaryType;
-import edu.trucktrack.service.TruckService;
-import edu.trucktrack.service.WorkTripService;
+import edu.trucktrack.dao.entity.EmployeeEntity;
+import edu.trucktrack.dao.entity.enums.Currency;
+import edu.trucktrack.dao.entity.enums.SalaryType;
+import edu.trucktrack.dao.service.TruckService;
+import edu.trucktrack.dao.service.WorkTripService;
 import edu.trucktrack.util.SecurityUtils;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -47,10 +49,13 @@ public class TripModal extends VerticalLayout {
     private final Select<TruckDTO> truck = new Select<>();
     private final Select<String> currency = new Select<>();
     private final Select<String> salaryType = new Select<>();
+    private final NumberField salaryRate = new NumberField();
 
+    // read-only fields
     private final Select<Long> tripId = new Select<>();
     private final Select<SimpleEmployeeDTO> employee = new Select<>();
     private final Select<LocalDateTime> createdAt = new Select<>();
+    private final IntegerField salary = new IntegerField();
 
     private final Binder<WorkTripDTO> binder;
     private final Dialog dialog = new Dialog();
@@ -90,6 +95,12 @@ public class TripModal extends VerticalLayout {
         salaryType.setItems(SalaryType.getLabels());
         salaryType.setSizeFull();
 
+        salaryRate.setLabel("Salary rate");
+        salaryRate.setStep(0.5);
+        salaryRate.setValue(1.5);
+        salaryRate.setStepButtonsVisible(true);
+        salaryRate.setSizeFull();
+
         currency.setLabel("Currency");
         currency.setItems(Currency.getLabels());
         currency.setSizeFull();
@@ -119,7 +130,9 @@ public class TripModal extends VerticalLayout {
         binder.forField(active).bind(WorkTripDTO::isActive, WorkTripDTO::setActive);
         binder.forField(employee).bind(WorkTripDTO::getEmployee, WorkTripDTO::setEmployee);
         binder.forField(currency).bind(WorkTripDTO::getCurrency, WorkTripDTO::setCurrency);
+        binder.forField(salary).bind(WorkTripDTO::getSalary, WorkTripDTO::setSalary);
         binder.forField(salaryType).bind(WorkTripDTO::getSalaryType, WorkTripDTO::setSalaryType);
+        binder.forField(salaryRate).bind(WorkTripDTO::getSalaryRate, WorkTripDTO::setSalaryRate);
         binder.forField(description).bind(WorkTripDTO::getDescription, WorkTripDTO::setDescription);
         binder.forField(createdAt).bind(WorkTripDTO::getCreatedAt, WorkTripDTO::setCreatedAt);
 
@@ -129,7 +142,8 @@ public class TripModal extends VerticalLayout {
     private void buildDialog() {
         dialog.setHeaderTitle(create ? "Create new WorkTrip and Bon voyage!" : "Update existing trip");
 
-        var dialogLayout = createDialogLayout();
+        var dialogLayout = new VerticalLayout(name, description, truck, currency, salaryType, salaryRate, active);
+        dialogLayout.setWidth("400px");
 
         dialog.add(dialogLayout);
         dialog.getFooter().add(cancelButton);
@@ -171,12 +185,5 @@ public class TripModal extends VerticalLayout {
         });
 
         return saveButton;
-    }
-
-    private VerticalLayout createDialogLayout() {
-        var dialogLayout = new VerticalLayout(name, description, truck, currency, salaryType, active);
-        dialogLayout.setWidth("400px");
-
-        return dialogLayout;
     }
 }

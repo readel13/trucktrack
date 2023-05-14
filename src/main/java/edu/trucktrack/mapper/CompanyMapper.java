@@ -1,7 +1,7 @@
 package edu.trucktrack.mapper;
 
 import edu.trucktrack.api.dto.CompanyDTO;
-import edu.trucktrack.entity.CompanyEntity;
+import edu.trucktrack.dao.entity.CompanyEntity;
 import org.mapstruct.Mapper;
 import org.springframework.stereotype.Component;
 

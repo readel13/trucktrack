@@ -1,6 +1,6 @@
 package edu.trucktrack.api.dto;
 
-import edu.trucktrack.entity.CurrencyEntity;
+import edu.trucktrack.dao.entity.CurrencyEntity;
 import lombok.Builder;
 import lombok.Data;
 

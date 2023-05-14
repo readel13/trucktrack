@@ -1,7 +1,7 @@
 package edu.trucktrack.mapper;
 
 import edu.trucktrack.api.dto.TruckDTO;
-import edu.trucktrack.entity.TruckEntity;
+import edu.trucktrack.dao.entity.TruckEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 

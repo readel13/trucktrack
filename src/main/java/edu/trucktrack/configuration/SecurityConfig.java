@@ -1,7 +1,7 @@
 package edu.trucktrack.configuration;
 
 import com.vaadin.flow.spring.security.VaadinWebSecurity;
-import edu.trucktrack.service.SecurityService;
+import edu.trucktrack.dao.service.SecurityService;
 import edu.trucktrack.ui.security.LoginView;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;

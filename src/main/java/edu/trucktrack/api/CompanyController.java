@@ -4,7 +4,7 @@ import edu.trucktrack.api.dto.CompanyDTO;
 import edu.trucktrack.api.dto.CompanyEmployeeDTO;
 import edu.trucktrack.mapper.CompanyMapper;
 import edu.trucktrack.mapper.EmployeeMapper;
-import edu.trucktrack.service.CompanyService;
+import edu.trucktrack.dao.service.CompanyService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
