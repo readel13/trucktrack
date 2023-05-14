@@ -1,8 +1,11 @@
 package edu.trucktrack.repository.jooq;
 
 import edu.trucktrack.api.request.SearchCriteriaRequest;
+import edu.trucktrack.jooq.tables.Company;
 import edu.trucktrack.jooq.tables.Currency;
 import edu.trucktrack.jooq.tables.Employee;
+import edu.trucktrack.jooq.tables.EmployeeRoles;
+import edu.trucktrack.jooq.tables.Roles;
 import edu.trucktrack.jooq.tables.SalaryType;
 import edu.trucktrack.jooq.tables.Truck;
 import edu.trucktrack.jooq.tables.WorkTrip;
@@ -66,5 +69,31 @@ public class WorkTripJooqRepo {
                 .ifPresent(name -> baseQuery.addConditions(trip.NAME.likeIgnoreCase("%" + name + "%")));
 
         return baseQuery.fetchInto(WorkTripRecordEntity.class);
+    }
+
+    public List<DriverDataForMapEntity> getDriverDataForMap() {
+        var trip = new WorkTrip(Names.TRIP);
+        var emp = new Employee(Names.EMP);
+        var truck = new Truck(Names.TRUCK);
+        var employeeRoles = new EmployeeRoles(Names.EMPLOYEE_ROLES);
+        var roles = new Roles(Names.ROLES);
+        var company = new Company(Names.COMPANY);
+
+        var baseQuery  = ctx.select(
+                trip.ID.as(Names.ID),
+                emp.EMAIL.as(Names.EMAIL),
+                emp.NAME.as(Names.NAME),
+                truck.NAME.as(Names.NAME),
+                truck.TRUCK_NUMBER.as(Names.TRUCK_NUMBER),
+                company.ID.as(Names.ID)
+        )
+                .from(trip)
+                .innerJoin(emp).on(emp.ID.eq(trip.EMPLOYEE_ID.cast(Long.class)))
+                .innerJoin(truck).on(truck.ID.eq(trip.TRUCK_ID.cast(Long.class)))
+                .innerJoin(employeeRoles).on(employeeRoles.EMPLOYEE_ID.eq(emp.ID.cast(Integer.class)))
+                .innerJoin(roles).on(roles.ID.eq(employeeRoles.ROLE_ID))
+                .innerJoin(company).on(company.ID.eq(emp.COMPANY_ID.cast(Long.class)))
+                .where(trip.ACTIVE.eq(true));
+        return baseQuery.fetchInto(DriverDataForMapEntity.class);
     }
 }

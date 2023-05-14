@@ -17,6 +17,8 @@ spring:
     locations: classpath:db/migration
     baseline-on-migrate: true
 
+apiKey: ${GOOGLE_MAPS_API_KEY}
+
 vaadin:
   servlet:
     productionMode: true

@@ -45,4 +45,9 @@ public interface Names {
     Name CREATED_AT = name("created_at");
     Name CREATED_BY_EMPLOYEE_ID = name("created_by_employee_id");
     Name CLOSED_AT = name("closed_at");
+    Name EMPLOYEE_ROLES = name("employee_roles");
+    Name ROLES = name("roles");
+    Name EMAIL = name("email");
+
+    Name COMPANY = name("company");
 }

@@ -11,12 +11,12 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.tabs.Tabs;
 import com.vaadin.flow.router.Route;
-import com.vaadin.flow.router.RouteAlias;
 import com.vaadin.flow.router.RouterLink;
 import com.vaadin.flow.spring.security.AuthenticationContext;
 import edu.trucktrack.ui.view.AnalyticsView;
 import edu.trucktrack.ui.view.CostView;
 import edu.trucktrack.ui.view.DashboardView;
+import edu.trucktrack.ui.view.MapView;
 import edu.trucktrack.ui.view.TaskView;
 import edu.trucktrack.ui.view.WorkTripView;
 import jakarta.annotation.security.PermitAll;
@@ -61,6 +61,7 @@ public class MainLayout extends AppLayout {
                 createTab(VaadinIcon.LIST, "Tasks", TaskView.class),
                 createTab(VaadinIcon.ROAD, "WorkTrips", WorkTripView.class),
                 createTab(VaadinIcon.MONEY, "Costs", CostView.class),
+                createTab(VaadinIcon.MONEY, "Map", MapView.class),
                 createTab(VaadinIcon.CHART, "Analytics", AnalyticsView.class));
         tabs.setOrientation(Tabs.Orientation.VERTICAL);
         return tabs;
