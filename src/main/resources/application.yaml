@@ -20,5 +20,6 @@ spring:
 apiKey: ${GOOGLE_MAPS_API_KEY}
 
 vaadin:
+  whitelisted-packages: edu.trucktrack.ui
   servlet:
     productionMode: true

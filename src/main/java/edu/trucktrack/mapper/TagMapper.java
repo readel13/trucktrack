@@ -1,7 +1,7 @@
 package edu.trucktrack.mapper;
 
 import edu.trucktrack.api.dto.TagDTO;
-import edu.trucktrack.entity.TagEntity;
+import edu.trucktrack.dao.entity.TagEntity;
 import org.mapstruct.Mapper;
 
 @Mapper

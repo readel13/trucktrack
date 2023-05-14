@@ -1,10 +1,10 @@
 package edu.trucktrack.mapper;
 
 import edu.trucktrack.api.dto.WorkTripDTO;
-import edu.trucktrack.entity.WorkTripEntity;
-import edu.trucktrack.entity.enums.Currency;
-import edu.trucktrack.entity.enums.SalaryType;
-import edu.trucktrack.repository.jooq.WorkTripRecordEntity;
+import edu.trucktrack.dao.entity.WorkTripEntity;
+import edu.trucktrack.dao.entity.enums.Currency;
+import edu.trucktrack.dao.entity.enums.SalaryType;
+import edu.trucktrack.dao.repository.jooq.WorkTripRecordEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
@@ -18,6 +18,7 @@ public interface WorkTripMapper {
     @Mapping(source = "salaryType", target = "salaryType", qualifiedByName = "mapSalaryTypeToEnumName")
     WorkTripDTO toDTO(WorkTripEntity entity);
 
+    @Mapping(source = "salaryType", target = "salaryType", ignore = true)
     WorkTripEntity toSimpleEntity(WorkTripDTO dto);
 
     @Mapping(source = "truckId", target = "truck.id")

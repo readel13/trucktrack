@@ -17,8 +17,8 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.Route;
 import edu.trucktrack.api.dto.DriverDataForMapDTO;
+import edu.trucktrack.dao.service.SecurityService;
 import edu.trucktrack.service.MapService;
-import edu.trucktrack.service.SecurityService;
 import edu.trucktrack.ui.MainLayout;
 
 import edu.trucktrack.util.MapUpdater;
@@ -30,7 +30,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-@StyleSheet("context://frontend/styles/google-maps/demo-styles.css")
+//@StyleSheet("context://frontend/styles/google-maps/demo-styles.css")
 @Route(value = "map", layout = MainLayout.class)
 @PermitAll
 public class MapView extends VerticalLayout{

@@ -1,7 +1,7 @@
 package edu.trucktrack.util;
 
-import edu.trucktrack.entity.EmployeeEntity;
-import edu.trucktrack.service.EmployeeService;
+import edu.trucktrack.dao.entity.EmployeeEntity;
+import edu.trucktrack.dao.service.EmployeeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;

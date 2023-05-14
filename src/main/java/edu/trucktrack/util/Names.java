@@ -17,6 +17,7 @@ public interface Names {
     Name CUR = name("cur");
     Name EMP = name("emp");
     Name CMP = name("cmp");
+    Name WSH = name("wsh");
     Name EXPS = name("exps");
 
     // field aliases
@@ -37,6 +38,7 @@ public interface Names {
     Name EMPLOYEE_ID = name("employee_id");
     Name EMPLOYEE_NAME = name("employee_name");
     Name SALARY = name("salary");
+    Name SALARY_RATE = name("salary_rate");
     Name SALARY_TYPE = name("salary_type");
     Name CURRENCY = name("currency");
     Name ACTIVE = name("active");

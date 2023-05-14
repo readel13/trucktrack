@@ -16,10 +16,10 @@ import edu.trucktrack.api.dto.EmployeeExpensesDTO;
 import edu.trucktrack.api.dto.SimpleEmployeeDTO;
 import edu.trucktrack.api.dto.TagDTO;
 import edu.trucktrack.api.dto.WorkTripDTO;
-import edu.trucktrack.entity.EmployeeEntity;
-import edu.trucktrack.entity.enums.Currency;
-import edu.trucktrack.repository.jooq.TagJooqRepository;
-import edu.trucktrack.service.ExpensesService;
+import edu.trucktrack.dao.entity.EmployeeEntity;
+import edu.trucktrack.dao.entity.enums.Currency;
+import edu.trucktrack.dao.repository.jooq.TagJooqRepository;
+import edu.trucktrack.dao.service.ExpensesService;
 import edu.trucktrack.util.SecurityUtils;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -45,8 +45,8 @@ public class ExpensesModal extends VerticalLayout {
 
     private final MoneyField moneyField;
     private final Select<Long> id = new Select<>();
-    private final TextField name = new TextField("Name", "name of cost");
-    private final TextField description = new TextField("Description", "description of cost");
+    private final TextField name = new TextField("Name", "name of expense");
+    private final TextField description = new TextField("Description", "description of expense");
     private final Select<SimpleEmployeeDTO> employee = new Select<>();
     private final Select<WorkTripDTO> trip = new Select<>();
     private final MultiSelectComboBox<TagDTO> tags;
@@ -73,7 +73,7 @@ public class ExpensesModal extends VerticalLayout {
         this.moneyField = getMoneyField();
         this.tags = buildBadgeMultiSelect();
 
-        this.openModalButton = update ? null : new Button("Create costs", e -> dialog.open());
+        this.openModalButton = update ? null : new Button("Create expense", e -> dialog.open());
 
         trip.setLabel("For trip");
         trip.setItemLabelGenerator(WorkTripDTO::getName);
@@ -117,7 +117,7 @@ public class ExpensesModal extends VerticalLayout {
     }
 
     private void buildDialog() {
-        dialog.setHeaderTitle(update ? "Update existing cost" : "Create new Costs!");
+        dialog.setHeaderTitle(update ? "Update existing expense" : "Create new expense!");
 
         var dialogLayout = createDialogLayout();
 
@@ -133,7 +133,7 @@ public class ExpensesModal extends VerticalLayout {
     }
 
     private Button buildSaveButton() {
-        Button saveButton = new Button(update ? "Save cost" : "Update cost");
+        Button saveButton = new Button(update ? "Update expense"  : "Save expense");
         saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
 
         saveButton.addClickListener(event -> {
@@ -145,7 +145,7 @@ public class ExpensesModal extends VerticalLayout {
                 log.info("Collected info: {}", expensesDTO);
                 expensesService.saveOrUpdate(expensesDTO);
 
-                Notification notification = Notification.show(update ? "Cost updated" : "Cost Added!");
+                Notification notification = Notification.show(update ? "Expense updated!" : "Expense Added!");
                 notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
 
                 updateListCallback.get();
@@ -172,7 +172,7 @@ public class ExpensesModal extends VerticalLayout {
         MultiSelectComboBox<TagDTO> badgeMultiselect = new MultiSelectComboBox<>();
         //TODO: for update add current tag from trip to items
         badgeMultiselect.setItems(tagJooqRepository.getAll());
-        badgeMultiselect.setLabel("Cost tags");
+        badgeMultiselect.setLabel("Tags(categories)");
         badgeMultiselect.setItemLabelGenerator(TagDTO::getName);
         badgeMultiselect.setSizeFull();
         return badgeMultiselect;
@@ -183,8 +183,8 @@ public class ExpensesModal extends VerticalLayout {
         var currencies = Currency.getLabels();
         var defaultValue = FastMoney.of(100.0, currencies.get(0));
         MoneyField moneyField = new MoneyField(defaultValue, currencies, true);
-        moneyField.setLabel("Input your first cost");
-        moneyField.setPlaceholder("money");
+        moneyField.setLabel("Input your expense");
+        moneyField.setPlaceholder("amount");
 
         moneyField.setSizeFull();
 

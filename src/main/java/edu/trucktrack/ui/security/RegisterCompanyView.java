@@ -13,8 +13,8 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.QueryParameters;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
-import edu.trucktrack.entity.CompanyEntity;
-import edu.trucktrack.repository.jpa.CompanyJpaRepository;
+import edu.trucktrack.dao.entity.CompanyEntity;
+import edu.trucktrack.dao.repository.jpa.CompanyJpaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.LocalDateTime;

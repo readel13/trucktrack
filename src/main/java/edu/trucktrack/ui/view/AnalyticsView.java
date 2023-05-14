@@ -26,13 +26,18 @@ public class AnalyticsView extends VerticalLayout {
 
         DataSeries anotherSeries = new DataSeries(
                 new DataSeriesItem("Section 1", 23),
-                new DataSeriesItem("Section 2", 11)
+                new DataSeriesItem("Section 1", 24),
+                new DataSeriesItem("Section 1", 25),
+                new DataSeriesItem("Section 2", 11),
+                new DataSeriesItem("Section 2", 7),
+                new DataSeriesItem("Section 2", 9)
         );
+
+        anotherSeries.setName("Salaries");
 
         Chart chart = new Chart();
         chart.getConfiguration().getChart().setType(ChartType.AREA);
-        chart.getConfiguration().addSeries(dataSeries);
-        chart.getConfiguration().addSeries(anotherSeries);
+        chart.getConfiguration().setSeries(anotherSeries);
 
 
         add(title, chartPie, chart);

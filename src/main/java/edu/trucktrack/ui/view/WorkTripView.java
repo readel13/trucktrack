@@ -2,6 +2,11 @@ package edu.trucktrack.ui.view;
 
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.charts.Chart;
+import com.vaadin.flow.component.charts.model.AxisType;
+import com.vaadin.flow.component.charts.model.ChartType;
+import com.vaadin.flow.component.charts.model.DataSeries;
+import com.vaadin.flow.component.charts.model.DataSeriesItem;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.gridpro.GridPro;
 import com.vaadin.flow.component.gridpro.GridProVariant;
@@ -14,15 +19,16 @@ import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.data.renderer.NumberRenderer;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouteParameters;
 import edu.trucktrack.api.dto.WorkTripDTO;
 import edu.trucktrack.api.request.FilterBy;
 import edu.trucktrack.api.request.SearchCriteriaRequest;
-import edu.trucktrack.entity.EmployeeEntity;
-import edu.trucktrack.service.TruckService;
-import edu.trucktrack.service.WorkTripService;
+import edu.trucktrack.dao.entity.EmployeeEntity;
+import edu.trucktrack.dao.service.TruckService;
+import edu.trucktrack.dao.service.WorkTripService;
 import edu.trucktrack.ui.MainLayout;
 import edu.trucktrack.ui.modal.TripModal;
 import edu.trucktrack.util.SecurityUtils;
@@ -31,10 +37,11 @@ import jakarta.annotation.security.PermitAll;
 import lombok.RequiredArgsConstructor;
 import org.vaadin.addons.badge.Badge;
 
-import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -79,7 +86,24 @@ public class WorkTripView extends VerticalLayout {
         HorizontalLayout searchAndAdd = new HorizontalLayout(searchTextField, addTripModal);
         searchAndAdd.setAlignItems(Alignment.CENTER);
 
-        add(new H1("Your trips"), searchAndAdd, workTripGrid);
+        var seriesItems = fetchData().stream().map(
+                trip -> new DataSeriesItem(trip.getCreatedAt().toInstant(ZoneOffset.UTC), trip.getSalary())
+        ).toList();
+        DataSeries dataSeries = new DataSeries(seriesItems);
+        dataSeries.setName("Salaries");
+        Chart chart = new Chart();
+        chart.getConfiguration().getChart().setType(ChartType.AREA);
+        chart.getConfiguration().getxAxis().setType(AxisType.DATETIME);
+        chart.getConfiguration().getxAxis().setTickInterval(TimeUnit.DAYS.toMillis(3));
+        chart.getConfiguration().setExporting(true);
+        chart.getConfiguration().setTitle("Salaries from trips by time");
+
+        chart.getConfiguration().setSeries(dataSeries);
+
+
+        //  new
+
+        add(new H1("Your trips"), chart, searchAndAdd, workTripGrid);
     }
 
     private SearchCriteriaRequest buildInitialCriteriaRequest() {
@@ -100,6 +124,8 @@ public class WorkTripView extends VerticalLayout {
         grid.addColumn(WorkTripDTO::getDescription).setHeader("Description").setAutoWidth(true);
         grid.addColumn(WorkTripDTO::getTruckName).setHeader("Truck").setAutoWidth(true);
         grid.addColumn(WorkTripDTO::getCurrency).setHeader("Currency").setAutoWidth(true);
+        grid.addComponentColumn(t -> new Badge(t.getSalaryType())).setHeader("Salary Type").setAutoWidth(true);
+        grid.addColumn(new NumberRenderer<>(WorkTripDTO::getSalaryRate, "%(,.2f")).setHeader("Salary Rate").setAutoWidth(true);
         grid.addComponentColumn(this::mapIsActive).setHeader("Active").setAutoWidth(true);
         grid.addColumn(trip -> trip.getCreatedAt().format(dateTimeFormatter)).setHeader("Created");
         grid.addColumn(trip ->
@@ -113,8 +139,8 @@ public class WorkTripView extends VerticalLayout {
         grid.addComponentColumn(trip -> {
             MenuBar menuBar = new MenuBar();
             menuBar.addThemeVariants(MenuBarVariant.LUMO_TERTIARY);
-            menuBar.addItem("View costs", event -> navigate(event, CostView.class, tripRouteParam.apply(trip.getId())));
-            menuBar.addItem("View salary", event -> navigate(event, CostView.class, tripRouteParam.apply(trip.getId())));
+            menuBar.addItem("View expenses", event -> navigate(event, ExpenseView.class, tripRouteParam.apply(trip.getId())));
+            menuBar.addItem("View salary", event -> navigate(event, ExpenseView.class, tripRouteParam.apply(trip.getId())));
             menuBar.addItem("Edit", event -> {
                 var updateModal = new TripModal(trip, false, updateGridCallBack, workTripService, truckService, securityUtils);
                 add(updateModal);
@@ -143,59 +169,6 @@ public class WorkTripView extends VerticalLayout {
         Badge badge = new Badge(tripDTO.isActive() ? "Yes" : "No");
         badge.setVariant(tripDTO.isActive() ? Badge.BadgeVariant.SUCCESS : Badge.BadgeVariant.ERROR);
         return badge;
-    }
-
-    public List<WorkTripDTO> fetchFakeData() {
-        return List.of(
-                WorkTripDTO.builder()
-                        .id(1L)
-                        .name("Viva la France")
-                        .description("Bon vouge from France")
-                        .truckId(1L)
-                        .truckName("Volvo")
-                        .salary(1000)
-                        .currency("USD")
-                        .active(true)
-                        .createdAt(LocalDateTime.now())
-                        .closedAt(LocalDateTime.now())
-                        .build(),
-                WorkTripDTO.builder()
-                        .id(2L)
-                        .name("Good Sweden!")
-                        .description("Ola")
-                        .truckId(2L)
-                        .truckName("Volvo")
-                        .salary(1000)
-                        .currency("USD")
-                        .active(true)
-                        .createdAt(LocalDateTime.now())
-                        .closedAt(LocalDateTime.now())
-                        .build(),
-                WorkTripDTO.builder()
-                        .id(5L)
-                        .name("Trip to China")
-                        .description("Made in China")
-                        .truckId(5L)
-                        .truckName("Volvo")
-                        .salary(1000)
-                        .currency("USD")
-                        .active(true)
-                        .createdAt(LocalDateTime.now())
-                        .closedAt(LocalDateTime.now())
-                        .build(),
-                WorkTripDTO.builder()
-                        .id(8L)
-                        .name("Viva la France")
-                        .description("Bon vouge from France")
-                        .truckId(8L)
-                        .truckName("Volvo")
-                        .salary(1000)
-                        .currency("USD")
-                        .active(true)
-                        .createdAt(LocalDateTime.now())
-                        .closedAt(LocalDateTime.now())
-                        .build()
-        );
     }
 
     private List<WorkTripDTO> fetchData() {
