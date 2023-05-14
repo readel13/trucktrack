@@ -70,7 +70,9 @@ public class MapUpdater {
 	public void updateLocationDataByTime() {
 		wLock.lock();
 		try {
-			locationDataMap.entrySet().forEach(item -> driverDataForMapDTOMap.get(item.getKey()).setLocationData(item.getValue()));
+			if (!locationDataMap.isEmpty()) {
+				locationDataMap.entrySet().forEach(item -> driverDataForMapDTOMap.get(item.getKey()).setLocationData(item.getValue()));
+			}
 		} finally {
 			wLock.unlock();
 		}
