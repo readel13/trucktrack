@@ -68,7 +68,10 @@ public class MapView extends VerticalLayout{
 	private void createGoogleMapsDemo() {
 		gmaps.setMapType(GoogleMap.MapType.ROADMAP);
 		gmaps.setSizeFull();
-		mapMarkers.values().forEach(item -> gmaps.addMarker(item));
+		if (!mapMarkers.isEmpty()) {
+			mapMarkers.values().forEach(item -> gmaps.addMarker(item));
+		}
+
 		add(gmaps);
 	}
 
