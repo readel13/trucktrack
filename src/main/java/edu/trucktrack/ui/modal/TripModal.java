@@ -80,7 +80,7 @@ public class TripModal extends VerticalLayout {
         this.currentEmployee = securityUtils.getCurrentEmployee();
         this.saveButton = buildSaveButton();
 
-        openModalButton = create ? new Button("Create new trip", e -> dialog.open()) : null;
+        openModalButton = create ? new Button("Create new", e -> dialog.open()) : null;
 
         truck.setLabel("Truck");
         truck.setItemLabelGenerator(TruckDTO::getName);

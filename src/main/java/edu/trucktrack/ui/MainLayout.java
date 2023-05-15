@@ -60,8 +60,8 @@ public class MainLayout extends AppLayout {
                 createTab(VaadinIcon.USER_HEART, "Customers", AnalyticsView.class),
                 createTab(VaadinIcon.LIST, "Tasks", TaskView.class),
                 createTab(VaadinIcon.ROAD, "WorkTrips", WorkTripView.class),
-                createTab(VaadinIcon.MONEY, "Costs", ExpenseView.class),
-                createTab(VaadinIcon.MONEY, "Map", MapView.class),
+                createTab(VaadinIcon.MONEY, "Expenses", ExpenseView.class),
+                createTab(VaadinIcon.MAP_MARKER, "Map", MapView.class),
                 createTab(VaadinIcon.CHART, "Analytics", AnalyticsView.class));
         tabs.setOrientation(Tabs.Orientation.VERTICAL);
         return tabs;

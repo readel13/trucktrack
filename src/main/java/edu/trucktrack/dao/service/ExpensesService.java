@@ -50,7 +50,6 @@ public class ExpensesService {
         return expenses.stream()
                 .map(EmployeeExpensesDTO::getTags)
                 .flatMap(Collection::stream)
-               // .map(TagDTO::getName)
                 .collect(Collectors.toMap(Function.identity(), v -> findByTag(expenses, v), (first, second) -> first));
     }
 

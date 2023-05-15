@@ -17,7 +17,9 @@ public class TruckDTO {
     private String name;
 
     @NotNull
-    private Integer companyId;
+    private Long companyId;
+
+    private String companyName;
 
     @NotBlank
     private String truckNumber;
@@ -28,6 +30,8 @@ public class TruckDTO {
     private Double fuelConsumption;
 
     private boolean active;
+
+    private boolean available;
 
     private LocalDate createdAt;
 }

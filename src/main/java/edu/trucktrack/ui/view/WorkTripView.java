@@ -5,8 +5,15 @@ import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.charts.Chart;
 import com.vaadin.flow.component.charts.model.AxisType;
 import com.vaadin.flow.component.charts.model.ChartType;
+import com.vaadin.flow.component.charts.model.Configuration;
 import com.vaadin.flow.component.charts.model.DataSeries;
 import com.vaadin.flow.component.charts.model.DataSeriesItem;
+import com.vaadin.flow.component.charts.model.Labels;
+import com.vaadin.flow.component.charts.model.PlotOptionsArea;
+import com.vaadin.flow.component.charts.model.PlotOptionsBar;
+import com.vaadin.flow.component.charts.model.SeriesTooltip;
+import com.vaadin.flow.component.charts.model.Tooltip;
+import com.vaadin.flow.component.charts.model.style.SolidColor;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.gridpro.GridPro;
 import com.vaadin.flow.component.gridpro.GridProVariant;
@@ -69,8 +76,14 @@ public class WorkTripView extends VerticalLayout {
         this.currentEmployee = securityUtils.getCurrentEmployee();
         this.criteriaRequest = buildInitialCriteriaRequest();
 
+        Chart chart = buildChart();
         Grid<WorkTripDTO> workTripGrid = buildWorkTripGrid();
-        this.updateGridCallBack = () -> workTripGrid.setItems(fetchData());
+        this.updateGridCallBack = () -> {
+            workTripGrid.setItems(fetchData());
+            chart.getConfiguration().setSeries(fetchChartSalaryData());
+            chart.drawChart();
+            return null;
+        };
 
         var addTripModal = new TripModal(null, true, updateGridCallBack, workTripService, truckService, securityUtils);
 
@@ -83,28 +96,60 @@ public class WorkTripView extends VerticalLayout {
             updateGridCallBack.get();
         });
 
-        HorizontalLayout searchAndAdd = new HorizontalLayout(searchTextField, addTripModal);
-        searchAndAdd.setAlignItems(Alignment.CENTER);
+        var searchAndCreate = new HorizontalLayout(searchTextField, addTripModal);
+        searchAndCreate.setAlignItems(Alignment.CENTER);
 
-        var seriesItems = fetchData().stream().map(
-                trip -> new DataSeriesItem(trip.getCreatedAt().toInstant(ZoneOffset.UTC), trip.getSalary())
-        ).toList();
+        add(new H1("Your trips"), chart, searchAndCreate, workTripGrid);
+    }
+
+    private Chart buildChart() {
+        DataSeries salaries = fetchChartSalaryData();
+        DataSeries expenses = fetchChartExpensesData();
+        Chart chart = new Chart();
+        Configuration configuration = chart.getConfiguration();
+        configuration.getChart().setType(ChartType.AREA);
+        configuration.getyAxis().setTitle("Money in " + currentEmployee.getCurrency().getName());
+        configuration.getxAxis().setTitle("Time");
+        configuration.getxAxis().setType(AxisType.DATETIME);
+        configuration.getxAxis().setTickInterval(TimeUnit.DAYS.toMillis(3));
+        configuration.setTooltip(new Tooltip());
+        configuration.setExporting(true);
+        configuration.setTitle("Salaries/Expenses from trips by time");
+        configuration.setSeries(salaries);
+        configuration.addSeries(expenses);
+        return chart;
+    }
+
+    private DataSeries fetchChartSalaryData() {
+        var seriesItems = fetchSalaryData().stream()
+                .map(trip -> new DataSeriesItem(trip.getCreatedAt().toInstant(ZoneOffset.UTC), trip.getSalary()))
+                .toList();
         DataSeries dataSeries = new DataSeries(seriesItems);
         dataSeries.setName("Salaries");
-        Chart chart = new Chart();
-        chart.getConfiguration().getChart().setType(ChartType.AREA);
-        chart.getConfiguration().getxAxis().setType(AxisType.DATETIME);
-        chart.getConfiguration().getxAxis().setTickInterval(TimeUnit.DAYS.toMillis(3));
-        chart.getConfiguration().setExporting(true);
-        chart.getConfiguration().setTitle("Salaries from trips by time");
-
-        chart.getConfiguration().setSeries(dataSeries);
-
-
-        //  new
-
-        add(new H1("Your trips"), chart, searchAndAdd, workTripGrid);
+        PlotOptionsArea plotOpts = new PlotOptionsArea();
+        plotOpts.setColor(SolidColor.LIME); // or SolidColor.LIME
+        SeriesTooltip tooltip = new SeriesTooltip();
+        tooltip.setPointFormat("Salary earned: {point.y} " + currentEmployee.getCurrency().getName());
+        plotOpts.setTooltip(tooltip);
+        dataSeries.setPlotOptions(plotOpts);
+        return dataSeries;
     }
+
+    private DataSeries fetchChartExpensesData() {
+        var seriesItems = fetchExpensesData().stream()
+                .map(trip -> new DataSeriesItem(trip.getCreatedAt().toInstant(ZoneOffset.UTC), trip.getCosts()))
+                .toList();
+        DataSeries dataSeries = new DataSeries(seriesItems);
+        dataSeries.setName("Expenses");
+        PlotOptionsArea plotOpts = new PlotOptionsArea();
+        plotOpts.setColor(SolidColor.LIGHTBLUE);
+        SeriesTooltip tooltip = new SeriesTooltip();
+        tooltip.setPointFormat("Expenses: {point.y} " + currentEmployee.getCurrency().getName());
+        plotOpts.setTooltip(tooltip);
+        dataSeries.setPlotOptions(plotOpts);
+        return dataSeries;
+    }
+
 
     private SearchCriteriaRequest buildInitialCriteriaRequest() {
         return SearchCriteriaRequest.builder()
@@ -123,6 +168,7 @@ public class WorkTripView extends VerticalLayout {
         grid.addColumn(WorkTripDTO::getName).setHeader("Name").setAutoWidth(true);
         grid.addColumn(WorkTripDTO::getDescription).setHeader("Description").setAutoWidth(true);
         grid.addColumn(WorkTripDTO::getTruckName).setHeader("Truck").setAutoWidth(true);
+        grid.addColumn(WorkTripDTO::getSalary).setHeader("Current salary").setAutoWidth(true);
         grid.addColumn(WorkTripDTO::getCurrency).setHeader("Currency").setAutoWidth(true);
         grid.addComponentColumn(t -> new Badge(t.getSalaryType())).setHeader("Salary Type").setAutoWidth(true);
         grid.addColumn(new NumberRenderer<>(WorkTripDTO::getSalaryRate, "%(,.2f")).setHeader("Salary Rate").setAutoWidth(true);
@@ -169,6 +215,14 @@ public class WorkTripView extends VerticalLayout {
         Badge badge = new Badge(tripDTO.isActive() ? "Yes" : "No");
         badge.setVariant(tripDTO.isActive() ? Badge.BadgeVariant.SUCCESS : Badge.BadgeVariant.ERROR);
         return badge;
+    }
+
+    private List<WorkTripDTO> fetchExpensesData() {
+        return workTripService.getAndConvertExpenses(criteriaRequest, currentEmployee.getCurrency().getName());
+    }
+
+    private List<WorkTripDTO> fetchSalaryData() {
+        return workTripService.getAndConvertSalaries(criteriaRequest, currentEmployee.getCurrency().getName());
     }
 
     private List<WorkTripDTO> fetchData() {
