@@ -55,6 +55,7 @@ import java.util.function.Supplier;
 @Route(value = "/expense/:tripId?", layout = MainLayout.class)
 public class ExpenseView extends VerticalLayout implements BeforeEnterObserver {
 
+    public static final String TRIP_ID_PATH_VARIABLE = "tripId";
     private WorkTripDTO trip;
     private Chart chart;
     private VirtualList<EmployeeExpensesDTO> virtualList;
@@ -80,8 +81,11 @@ public class ExpenseView extends VerticalLayout implements BeforeEnterObserver {
 
     @Override
     public void beforeEnter(BeforeEnterEvent event) {
-        var tripId = event.getRouteParameters().get("tripId").map(Long::valueOf).orElse(null);
-        this.trip = workTripService.getById(tripId);
+        this.trip = event.getRouteParameters()
+                 .get(TRIP_ID_PATH_VARIABLE)
+                 .map(Long::valueOf)
+                 .map(workTripService::getById)
+                 .orElse(null);
         this.currentEmployee = securityUtils.getCurrentEmployee();
         this.searchCriteriaRequest = buildInitialCriteriaRequest();
         this.virtualList = createVirtualList();
@@ -92,18 +96,23 @@ public class ExpenseView extends VerticalLayout implements BeforeEnterObserver {
             chart.drawChart();
             return null;
         };
-
-        var expenseModal = new ExpensesModal(null, false, trip, updateData, expensesService, securityUtils, tagJooqRepository);
-
+//
+//        if (trip != null) {
+//            var expenseModal = new ExpensesModal(null, false, trip, updateData, expensesService, securityUtils, tagJooqRepository);
+//        }
         var searchTextField = buildSearchbar();
-        var searchAndCreateLayout = new HorizontalLayout(searchTextField, expenseModal);
+        var searchAndCreateLayout = new HorizontalLayout(searchTextField);
+        // TODO: fix modal, if trip is not present
+        if (trip != null) {
+            searchAndCreateLayout.add(new ExpensesModal(null, false, trip, updateData, expensesService, securityUtils, tagJooqRepository));
+        }
         searchAndCreateLayout.setAlignItems(Alignment.CENTER);
 
         this.chart = buildChart();
 
         super.setHeightFull();
 
-        title.setText(tripId == null ? "Your all expenses" : "Your expenses from '%s' trip ".formatted(trip.getName()));
+        title.setText(trip == null ? "Your all expenses" : "Your expenses from '%s' trip ".formatted(trip.getName()));
         VerticalLayout verticalLayout = new VerticalLayout(title, new Div(chart), searchAndCreateLayout, virtualList);
         verticalLayout.setAlignItems(Alignment.STRETCH);
         verticalLayout.setSizeFull();
@@ -113,6 +122,10 @@ public class ExpenseView extends VerticalLayout implements BeforeEnterObserver {
     private Chart buildChart() {
         Chart chart = new Chart(ChartType.PIE);
 
+        var currency = Optional.ofNullable(trip)
+                .map(WorkTripDTO::getCurrency)
+                .orElse(currentEmployee.getCurrency().getName());
+
         PlotOptionsPie options = new PlotOptionsPie();
         options.setSize("100%");
 
@@ -121,14 +134,18 @@ public class ExpenseView extends VerticalLayout implements BeforeEnterObserver {
         configuration.setTitle("Expenses by tags");
         configuration.setSeries(fetchChartData(chart));
         configuration.setPlotOptions(options);
-        configuration.getTooltip().setPointFormat("Total by group: {point.y} %s".formatted(trip.getCurrency()));
+        configuration.getTooltip().setPointFormat("Total by group: {point.y} %s".formatted(currency));
         chart.setSizeFull();
 
         return chart;
     }
 
     private DataSeries fetchChartData(Chart chart) {
-        var convertedData = expensesService.getConvertedData(searchCriteriaRequest, trip.getCurrency());
+        var convertToCurrency = Optional.ofNullable(trip)
+                .map(WorkTripDTO::getCurrency)
+                .orElse(currentEmployee.getCurrency().getName());
+
+        var convertedData = expensesService.getConvertedData(searchCriteriaRequest, convertToCurrency);
         long sum = convertedData.values()
                 .stream()
                 .flatMap(Collection::stream)
@@ -141,8 +158,8 @@ public class ExpenseView extends VerticalLayout implements BeforeEnterObserver {
                 .map(entry -> mapToDataSeries(entry, sum))
                 .toList();
 
-        DataSeries dataSeries = new DataSeries(seriesItems);
-        chart.getConfiguration().setSubTitle("Total - %d %s".formatted(sum, trip.getCurrency()));
+        var dataSeries = new DataSeries(seriesItems);
+        chart.getConfiguration().setSubTitle("Total - %d %s".formatted(sum, convertToCurrency));
         return dataSeries;
     }
 
@@ -156,7 +173,7 @@ public class ExpenseView extends VerticalLayout implements BeforeEnterObserver {
         return SearchCriteriaRequest.builder()
                 .filterBy(FilterBy.builder()
                         .companyId(currentEmployee.getCompany().getId().intValue())
-                        .tripId(Optional.ofNullable(trip).map(WorkTripDTO::getId).orElse(0L))
+                        .tripId(Optional.ofNullable(trip).map(WorkTripDTO::getId).orElse(null))
                         .build())
                 .build();
     }

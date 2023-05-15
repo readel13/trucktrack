@@ -1,6 +1,7 @@
 package edu.trucktrack.dao.service;
 
 import edu.trucktrack.api.dto.TruckDTO;
+import edu.trucktrack.api.request.SearchCriteriaRequest;
 import edu.trucktrack.dao.repository.jooq.TruckJooqRepository;
 import edu.trucktrack.dao.repository.jpa.TruckJpaRepository;
 import edu.trucktrack.dao.entity.TruckEntity;
@@ -21,24 +22,27 @@ public class TruckService {
 
     private final TruckJooqRepository truckJooqRepository;
 
+    //TODO: fix it for supporting update or create new method
     public TruckDTO save(TruckDTO truckDTO) {
-        if (!truckJooqRepository.validateForSave(truckDTO)) {
+        if (truckJooqRepository.exist(truckDTO)) {
             throw new IllegalArgumentException("Something wrong with creation truck");
         }
 
         TruckEntity entity = mapper.toEntity(truckDTO);
-        var company = companyService.getById(Long.valueOf(truckDTO.getCompanyId()));
+        var company = companyService.getById(truckDTO.getCompanyId());
 
         entity.setCompany(company);
         return mapper.toDTO(truckJpaRepository.save(entity));
     }
 
-    // TODO: rewrite it using JOOQ for supporting pagination
-    // TODO: add property isAvailable and badge in front-end: availble - when all trips with this truck closed or not exist
-    public List<TruckDTO> getAll() {
-        return truckJpaRepository.findAll().stream()
-                .map(mapper::toDTO)
-                .toList();
+    public void deleteById(Long id) {
+        truckJpaRepository.deleteById(id);
+    }
+
+
+    // TODO: pagination
+    public List<TruckDTO> getAll(SearchCriteriaRequest criteriaRequest) {
+        return truckJooqRepository.getAll(criteriaRequest);
     }
 
 
