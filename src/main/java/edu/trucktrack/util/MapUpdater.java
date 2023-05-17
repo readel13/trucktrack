@@ -32,7 +32,7 @@ public class MapUpdater {
 
 	public MapUpdater(MapService mapService) {
 		this.mapService = mapService;
-		this.addLocationData(new AndroidTrackerLocationData("superuser@mail.com", 48.15844527759325, 25.726506569491583, 31.1));
+		this.addLocationData(new AndroidTrackerLocationData("vasia@mail.com", 48.15844527759325, 25.726506569491583, 31.1));
 
 	}
 
