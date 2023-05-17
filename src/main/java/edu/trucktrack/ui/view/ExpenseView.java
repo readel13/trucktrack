@@ -8,6 +8,7 @@ import com.vaadin.flow.component.charts.model.Configuration;
 import com.vaadin.flow.component.charts.model.DataSeries;
 import com.vaadin.flow.component.charts.model.DataSeriesItem;
 import com.vaadin.flow.component.charts.model.PlotOptionsPie;
+import com.vaadin.flow.component.charts.model.Tooltip;
 import com.vaadin.flow.component.contextmenu.ContextMenu;
 import com.vaadin.flow.component.details.Details;
 import com.vaadin.flow.component.html.Div;
@@ -16,6 +17,7 @@ import com.vaadin.flow.component.html.H4;
 import com.vaadin.flow.component.html.H5;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
@@ -31,6 +33,7 @@ import edu.trucktrack.api.dto.WorkTripDTO;
 import edu.trucktrack.api.request.FilterBy;
 import edu.trucktrack.api.request.SearchCriteriaRequest;
 import edu.trucktrack.dao.entity.EmployeeEntity;
+import edu.trucktrack.dao.entity.enums.Currency;
 import edu.trucktrack.dao.repository.jooq.TagJooqRepository;
 import edu.trucktrack.dao.service.ExpensesService;
 import edu.trucktrack.dao.service.WorkTripService;
@@ -77,6 +80,8 @@ public class ExpenseView extends VerticalLayout implements BeforeEnterObserver {
 
     private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
+    private String currentCurrency;
+
     private final H1 title = new H1();
 
     @Override
@@ -93,13 +98,26 @@ public class ExpenseView extends VerticalLayout implements BeforeEnterObserver {
         this.updateData = () -> {
             virtualList.setItems(fetchData());
             chart.getConfiguration().setSeries(fetchChartData(chart));
+            chart.getConfiguration().setTooltip(new Tooltip());
+            chart.getConfiguration().getTooltip().setPointFormat("Total by group: {point.y} %s".formatted(currentCurrency));
             chart.drawChart();
             return null;
         };
-//
-//        if (trip != null) {
-//            var expenseModal = new ExpensesModal(null, false, trip, updateData, expensesService, securityUtils, tagJooqRepository);
-//        }
+
+      this.currentCurrency =  Optional.ofNullable(trip)
+                .map(WorkTripDTO::getCurrency)
+                .orElse(currentEmployee.getCurrency().getName());
+
+        var changeCurrencyMenuBar = new MenuBar();
+        var changeCurrency = changeCurrencyMenuBar.addItem("Change currency");
+        var changeCurrencySubMenu = changeCurrency.getSubMenu();
+        for (var currency : Currency.values()) {
+            changeCurrencySubMenu.addItem(currency.label(), e -> {
+                currentCurrency = e.getSource().getText();
+                updateData.get();
+            });
+        }
+
         var searchTextField = buildSearchbar();
         var searchAndCreateLayout = new HorizontalLayout(searchTextField);
         // TODO: fix modal, if trip is not present
@@ -113,7 +131,7 @@ public class ExpenseView extends VerticalLayout implements BeforeEnterObserver {
         super.setHeightFull();
 
         title.setText(trip == null ? "Your all expenses" : "Your expenses from '%s' trip ".formatted(trip.getName()));
-        VerticalLayout verticalLayout = new VerticalLayout(title, new Div(chart), searchAndCreateLayout, virtualList);
+        VerticalLayout verticalLayout = new VerticalLayout(title, changeCurrencyMenuBar, new Div(chart), searchAndCreateLayout, virtualList);
         verticalLayout.setAlignItems(Alignment.STRETCH);
         verticalLayout.setSizeFull();
         add(verticalLayout);
@@ -141,11 +159,7 @@ public class ExpenseView extends VerticalLayout implements BeforeEnterObserver {
     }
 
     private DataSeries fetchChartData(Chart chart) {
-        var convertToCurrency = Optional.ofNullable(trip)
-                .map(WorkTripDTO::getCurrency)
-                .orElse(currentEmployee.getCurrency().getName());
-
-        var convertedData = expensesService.getConvertedData(searchCriteriaRequest, convertToCurrency);
+        var convertedData = expensesService.getConvertedData(searchCriteriaRequest, currentCurrency);
         long sum = convertedData.values()
                 .stream()
                 .flatMap(Collection::stream)
@@ -159,7 +173,7 @@ public class ExpenseView extends VerticalLayout implements BeforeEnterObserver {
                 .toList();
 
         var dataSeries = new DataSeries(seriesItems);
-        chart.getConfiguration().setSubTitle("Total - %d %s".formatted(sum, convertToCurrency));
+        chart.getConfiguration().setSubTitle("Total - %d %s".formatted(sum, currentCurrency));
         return dataSeries;
     }
 
