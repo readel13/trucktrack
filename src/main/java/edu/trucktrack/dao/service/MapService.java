@@ -1,10 +1,10 @@
-package edu.trucktrack.service;
+package edu.trucktrack.dao.service;
 
 import edu.trucktrack.api.dto.DriverDataForMapDTO;
 import edu.trucktrack.dao.entity.WorkTripCargoHistory;
 import edu.trucktrack.dao.repository.jooq.WorkTripJooqRepo;
-import edu.trucktrack.repository.jooq.DriverDataForMapEntity;
-import edu.trucktrack.repository.jpa.WorkTripCargoHistoryRepository;
+import edu.trucktrack.dao.repository.jooq.DriverDataForMapEntity;
+import edu.trucktrack.dao.repository.jpa.WorkTripCargoHistoryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;

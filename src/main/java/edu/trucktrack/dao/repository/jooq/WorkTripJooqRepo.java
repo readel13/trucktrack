@@ -10,7 +10,6 @@ import edu.trucktrack.dao.jooq.tables.SalaryType;
 import edu.trucktrack.dao.jooq.tables.Truck;
 import edu.trucktrack.dao.jooq.tables.WorkTrip;
 import edu.trucktrack.dao.jooq.tables.WorkTripSalaryHistory;
-import edu.trucktrack.repository.jooq.DriverDataForMapEntity;
 import edu.trucktrack.util.JooqHelper;
 import edu.trucktrack.util.Names;
 import lombok.RequiredArgsConstructor;

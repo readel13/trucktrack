@@ -1,4 +1,4 @@
-package edu.trucktrack.repository.jooq;
+package edu.trucktrack.dao.repository.jooq;
 
 import lombok.Value;
 

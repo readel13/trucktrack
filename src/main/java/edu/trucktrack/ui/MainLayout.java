@@ -71,9 +71,9 @@ public class MainLayout extends AppLayout {
         if (securityUtils.getCurrentEmployee().isManagerOrOwner()) {
             tabs.add(createTab(VaadinIcon.USER_CARD, "Employees", EmployeeView.class));
         }
-        tabs.add(createTab(VaadinIcon.HAMMER, "Settings", SettingView.class));
 
-                createTab(VaadinIcon.TASKS, "Cargos", CargoView.class));
+        tabs.add(createTab(VaadinIcon.TASKS, "Cargos", CargoView.class));
+        tabs.add(createTab(VaadinIcon.HAMMER, "Settings", SettingView.class));
         tabs.setOrientation(Tabs.Orientation.VERTICAL);
         return tabs;
     }

@@ -8,7 +8,6 @@ import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.contextmenu.MenuItem;
 import com.vaadin.flow.component.contextmenu.SubMenu;
-import com.vaadin.flow.component.dependency.StyleSheet;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.menubar.MenuBar;
@@ -18,7 +17,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.Route;
 import edu.trucktrack.api.dto.DriverDataForMapDTO;
 import edu.trucktrack.dao.service.SecurityService;
-import edu.trucktrack.service.MapService;
+import edu.trucktrack.dao.service.MapService;
 import edu.trucktrack.ui.MainLayout;
 
 import edu.trucktrack.util.MapUpdater;

@@ -1,6 +1,6 @@
 package edu.trucktrack.api.dto;
 
-import edu.trucktrack.repository.jooq.DriverDataForMapEntity;
+import edu.trucktrack.dao.repository.jooq.DriverDataForMapEntity;
 import lombok.Builder;
 import lombok.Data;
 

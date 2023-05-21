@@ -1,4 +1,4 @@
-package edu.trucktrack.repository.jpa;
+package edu.trucktrack.dao.repository.jpa;
 
 
 import edu.trucktrack.dao.entity.WorkTripCargoHistory;

@@ -2,7 +2,7 @@ package edu.trucktrack.api.controller;
 
 import edu.trucktrack.api.dto.AndroidTrackerLocationData;
 import edu.trucktrack.dao.entity.WorkTripSalaryHistoryEntity;
-import edu.trucktrack.service.SalaryService;
+import edu.trucktrack.dao.service.SalaryService;
 import edu.trucktrack.util.MapUpdater;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -10,12 +10,10 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
 
 @Controller
 @RequestMapping("/api/tracker")

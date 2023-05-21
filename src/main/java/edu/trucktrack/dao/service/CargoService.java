@@ -1,8 +1,6 @@
 package edu.trucktrack.dao.service;
 
 import edu.trucktrack.api.dto.CargoDTO;
-import edu.trucktrack.api.dto.EmployeeDTO;
-import edu.trucktrack.api.request.FilterBy;
 import edu.trucktrack.api.request.SearchCriteriaRequest;
 import edu.trucktrack.dao.entity.EmployeeEntity;
 import edu.trucktrack.dao.entity.WorkTripCargoHistory;
@@ -11,7 +9,7 @@ import edu.trucktrack.dao.repository.jooq.EmployeeEntityRecord;
 import edu.trucktrack.dao.repository.jooq.WorkTripCargoHistoryJooqRepo;
 import edu.trucktrack.dao.repository.jpa.EmployeeJpaRepository;
 import edu.trucktrack.dao.repository.jpa.WorkTripJpaRepository;
-import edu.trucktrack.repository.jpa.WorkTripCargoHistoryRepository;
+import edu.trucktrack.dao.repository.jpa.WorkTripCargoHistoryRepository;
 import edu.trucktrack.util.EmailUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

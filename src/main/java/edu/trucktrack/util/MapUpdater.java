@@ -2,7 +2,7 @@ package edu.trucktrack.util;
 
 import edu.trucktrack.api.dto.AndroidTrackerLocationData;
 import edu.trucktrack.api.dto.DriverDataForMapDTO;
-import edu.trucktrack.service.MapService;
+import edu.trucktrack.dao.service.MapService;
 import jakarta.inject.Singleton;
 import org.springframework.context.annotation.Bean;
 import org.springframework.scheduling.annotation.Scheduled;
