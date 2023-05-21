@@ -10,6 +10,8 @@ import org.springframework.stereotype.Component;
 @Component
 public interface EmployeeMapper {
 
+    EmployeeDTO toDTO(EmployeeEntity entity);
+
     EmployeeEntity toEntity(EmployeeDTO employeeDTO);
 
     EmployeeEntity toEntity(SimpleEmployeeDTO simpleEmployeeDTO);

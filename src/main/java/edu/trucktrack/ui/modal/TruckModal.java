@@ -33,7 +33,7 @@ public class TruckModal extends VerticalLayout {
 
     private final EmployeeEntity currentEmployee;
 
-    private final TextField name = new TextField("Name", "name of expense");
+    private final TextField name = new TextField("Name", "name of truck");
     private final TextField truckNumber = new TextField("Truck number", "Truck number");
     private final TextField vinCode = new TextField("VIN code", "VIN");
     private final NumberField fuelConsumption = new NumberField();

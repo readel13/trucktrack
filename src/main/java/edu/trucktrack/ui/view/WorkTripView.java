@@ -1,25 +1,27 @@
 package edu.trucktrack.ui.view;
 
+import com.github.diasadm.DateRange;
+import com.github.diasadm.DateRangePicker;
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.Text;
+import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.charts.Chart;
 import com.vaadin.flow.component.charts.model.AxisType;
 import com.vaadin.flow.component.charts.model.ChartType;
 import com.vaadin.flow.component.charts.model.Configuration;
 import com.vaadin.flow.component.charts.model.DataSeries;
 import com.vaadin.flow.component.charts.model.DataSeriesItem;
-import com.vaadin.flow.component.charts.model.Labels;
 import com.vaadin.flow.component.charts.model.PlotOptionsArea;
-import com.vaadin.flow.component.charts.model.PlotOptionsBar;
 import com.vaadin.flow.component.charts.model.SeriesTooltip;
 import com.vaadin.flow.component.charts.model.Tooltip;
 import com.vaadin.flow.component.charts.model.style.SolidColor;
-import com.vaadin.flow.component.contextmenu.MenuItem;
-import com.vaadin.flow.component.contextmenu.SubMenu;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.gridpro.GridPro;
 import com.vaadin.flow.component.gridpro.GridProVariant;
+import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H1;
+import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.menubar.MenuBarVariant;
@@ -29,6 +31,8 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.renderer.NumberRenderer;
+import com.vaadin.flow.router.BeforeEnterEvent;
+import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouteParameters;
@@ -38,6 +42,7 @@ import edu.trucktrack.api.request.SearchCriteriaRequest;
 import edu.trucktrack.dao.entity.EmployeeEntity;
 import edu.trucktrack.dao.entity.enums.Currency;
 import edu.trucktrack.dao.entity.enums.SalaryType;
+import edu.trucktrack.dao.service.EmployeeService;
 import edu.trucktrack.dao.service.TruckService;
 import edu.trucktrack.dao.service.WorkTripService;
 import edu.trucktrack.ui.MainLayout;
@@ -59,14 +64,17 @@ import java.util.function.Supplier;
 @PermitAll
 @RequiredArgsConstructor
 @PageTitle("Your work trips")
-@Route(value = "work-trip", layout = MainLayout.class)
-public class WorkTripView extends VerticalLayout {
+@Route(value = "/work-trip/:employeeId?", layout = MainLayout.class)
+public class WorkTripView extends VerticalLayout implements BeforeEnterObserver {
 
+    public static final String EMPLOYEE_ID_PATH_VARIABLE = "employeeId";
     private final SecurityUtils securityUtils;
 
     private final TruckService truckService;
 
     private final WorkTripService workTripService;
+
+    private final EmployeeService employeeService;
 
     private Supplier<Object> updateGridCallBack;
 
@@ -74,21 +82,35 @@ public class WorkTripView extends VerticalLayout {
 
     private EmployeeEntity currentEmployee;
 
+    private boolean isPassedEmployee;
+
+    private Grid<WorkTripDTO> workTripGrid;
+    private Grid.Column<WorkTripDTO> gridNameColumn;
+    private Grid.Column<WorkTripDTO> gridSalaryTypeColumn;
+    private Grid.Column<WorkTripDTO> gridSalaryRateColumn;
+    private Grid.Column<WorkTripDTO> gridActiveColumn;
+
     private Chart chart;
 
     private String currentCurrency;
     private SearchCriteriaRequest criteriaRequest;
 
-    @PostConstruct
-    public void init() {
-        this.currentEmployee = securityUtils.getCurrentEmployee();
-        this.currentCurrency = securityUtils.getCurrentEmployee().getCurrency().getName();
+    @Override
+    public void beforeEnter(BeforeEnterEvent enterEvent) {
+        this.currentEmployee = enterEvent.getRouteParameters()
+                .get(EMPLOYEE_ID_PATH_VARIABLE)
+                .map(Long::valueOf)
+                .map(employeeService::getById)
+                .orElse(securityUtils.getCurrentEmployee());
+
+        this.isPassedEmployee = !currentEmployee.getId().equals(securityUtils.getCurrentEmployee().getId());
+        this.currentCurrency = currentEmployee.getCurrency().getName();
         this.criteriaRequest = buildInitialCriteriaRequest();
 
         this.chart = buildChart(currentCurrency);
-        Grid<WorkTripDTO> workTripGrid = buildWorkTripGrid();
+        workTripGrid = buildWorkTripGrid();
         this.updateGridCallBack = () -> {
-            workTripGrid.setItems(fetchData());
+            setGridDataAndMetrics(workTripGrid);
             chart.getConfiguration().setSeries(fetchChartSalaryData(currentCurrency), fetchChartExpensesData(currentCurrency));
             chart.getConfiguration().getxAxis().setTitle("Money in " + currentCurrency);
             chart.drawChart();
@@ -105,7 +127,7 @@ public class WorkTripView extends VerticalLayout {
             });
         }
 
-        var addTripModal = new TripModal(null, true, updateGridCallBack, workTripService, truckService, securityUtils);
+        var addTripModal = new TripModal(null, true, updateGridCallBack, workTripService, truckService, currentEmployee);
 
         var searchTextField = new TextField();
         searchTextField.setWidth("800px");
@@ -116,10 +138,40 @@ public class WorkTripView extends VerticalLayout {
             updateGridCallBack.get();
         });
 
-        var searchAndCreate = new HorizontalLayout(searchTextField, addTripModal);
-        searchAndCreate.setAlignItems(Alignment.CENTER);
+        var dateRangePicker = new DateRangePicker("", "", "", false);
+        dateRangePicker.getStartDatePicker().setPlaceholder("Start Date");
+        dateRangePicker.getEndDatePicker().setPlaceholder("End Date");
+        dateRangePicker.addValueChangeListener(e -> {
+            DateRange value = e.getValue();
+            criteriaRequest = criteriaRequest.toBuilder()
+                    .filterBy(criteriaRequest.getFilterBy().toBuilder()
+                            .from(value.getBeginDate())
+                            .to(value.getEndDate())
+                            .build())
+                    .build();
+            updateGridCallBack.get();
+        });
+        var clearButton = new Button("Clear", e -> {
+            criteriaRequest = criteriaRequest.toBuilder()
+                    .filterBy(criteriaRequest.getFilterBy().toBuilder()
+                            .from(null)
+                            .to(null)
+                            .build())
+                    .build();
+            updateGridCallBack.get();
+            dateRangePicker.clear();
+        });
 
-        add(new H1("Your trips"), changeCurrencyMenuBar, chart, searchAndCreate, workTripGrid);
+        var pickerLayout = new HorizontalLayout(dateRangePicker, clearButton);
+        pickerLayout.getStyle().set("margin-left", "auto");
+
+        var searchAndCreate = new HorizontalLayout(searchTextField, addTripModal, pickerLayout);
+        searchAndCreate.setVerticalComponentAlignment(Alignment.CENTER, searchTextField, addTripModal, pickerLayout);
+        searchAndCreate.setJustifyContentMode(JustifyContentMode.BETWEEN);
+        searchAndCreate.setAlignItems(Alignment.CENTER);
+        searchAndCreate.setWidthFull();
+
+        add(new H1(isPassedEmployee ? "%s's work trips".formatted(currentEmployee.getName()) : "Your work trips"), changeCurrencyMenuBar, chart, searchAndCreate, workTripGrid);
     }
 
     private Chart buildChart(String currency) {
@@ -134,7 +186,7 @@ public class WorkTripView extends VerticalLayout {
         configuration.getxAxis().setTickInterval(TimeUnit.DAYS.toMillis(3));
         configuration.setTooltip(new Tooltip());
         configuration.setExporting(true);
-        configuration.setTitle("Salaries/Expenses from trips by time");
+        configuration.setTitle("Salaries/Expenses from work trips by time");
         configuration.setSeries(salaries);
         configuration.addSeries(expenses);
         return chart;
@@ -147,7 +199,7 @@ public class WorkTripView extends VerticalLayout {
         DataSeries dataSeries = new DataSeries(seriesItems);
         dataSeries.setName("Salaries");
         PlotOptionsArea plotOpts = new PlotOptionsArea();
-        plotOpts.setColor(SolidColor.LIME); // or SolidColor.LIME
+        plotOpts.setColor(SolidColor.LIGHTBLUE); // or SolidColor.LIME
         SeriesTooltip tooltip = new SeriesTooltip();
         tooltip.setPointFormat("Salary earned: {point.y} " + currency);
         plotOpts.setTooltip(tooltip);
@@ -162,7 +214,7 @@ public class WorkTripView extends VerticalLayout {
         DataSeries dataSeries = new DataSeries(seriesItems);
         dataSeries.setName("Expenses");
         PlotOptionsArea plotOpts = new PlotOptionsArea();
-        plotOpts.setColor(SolidColor.LIGHTBLUE);
+        plotOpts.setColor(SolidColor.LIGHTCORAL);
         SeriesTooltip tooltip = new SeriesTooltip();
         tooltip.setPointFormat("Expenses: {point.y} " + currency);
         plotOpts.setTooltip(tooltip);
@@ -185,15 +237,15 @@ public class WorkTripView extends VerticalLayout {
         grid.addThemeVariants(GridProVariant.LUMO_COMPACT, GridProVariant.LUMO_WRAP_CELL_CONTENT);
 
         // TODO: Map Employee or Not?
-        grid.addColumn(WorkTripDTO::getName).setHeader("Name").setAutoWidth(true);
-        grid.addColumn(WorkTripDTO::getDescription).setHeader("Description").setAutoWidth(true);
-        grid.addColumn(WorkTripDTO::getTruckName).setHeader("Truck").setAutoWidth(true);
+        gridNameColumn = grid.addColumn(WorkTripDTO::getName).setHeader("Name").setSortable(true).setComparator(WorkTripDTO::getName).setAutoWidth(true);
+        grid.addColumn(WorkTripDTO::getDescription).setHeader("Description").setSortable(true).setAutoWidth(true);
+        grid.addColumn(WorkTripDTO::getTruckName).setHeader("Truck").setSortable(true).setAutoWidth(true);
         grid.addColumn(WorkTripDTO::getSalary).setHeader("Current salary").setAutoWidth(true);
         grid.addColumn(WorkTripDTO::getCurrency).setHeader("Currency").setAutoWidth(true);
-        grid.addComponentColumn(t -> new Badge(t.getSalaryType())).setHeader("Salary Type").setAutoWidth(true);
-        grid.addColumn(new NumberRenderer<>(WorkTripDTO::getSalaryRate, "%(,.2f")).setHeader("Salary Rate").setAutoWidth(true);
-        grid.addComponentColumn(this::mapIsActive).setHeader("Active").setAutoWidth(true);
-        grid.addColumn(trip -> trip.getCreatedAt().format(dateTimeFormatter)).setHeader("Created");
+        gridSalaryTypeColumn = grid.addComponentColumn(t -> new Badge(t.getSalaryType())).setHeader("Salary Type").setAutoWidth(true);
+        gridSalaryRateColumn = grid.addColumn(new NumberRenderer<>(WorkTripDTO::getSalaryRate, "%(,.2f")).setHeader("Salary Rate").setSortable(true).setComparator(WorkTripDTO::getSalaryRate).setAutoWidth(true);
+        gridActiveColumn = grid.addComponentColumn(this::mapIsActive).setHeader("Active").setSortable(true).setComparator(WorkTripDTO::isActive).setAutoWidth(true);
+        grid.addColumn(trip -> trip.getCreatedAt().format(dateTimeFormatter)).setSortable(true).setHeader("Created");
         grid.addColumn(trip ->
                 Optional.ofNullable(trip.getClosedAt())
                         .map(d -> d.format(dateTimeFormatter))
@@ -210,7 +262,7 @@ public class WorkTripView extends VerticalLayout {
                 menuBar.addItem("View salary", event -> navigate(event, ExpenseView.class, tripRouteParam.apply(trip.getId())));
             }
             menuBar.addItem("Edit", event -> {
-                var updateModal = new TripModal(trip, false, updateGridCallBack, workTripService, truckService, securityUtils);
+                var updateModal = new TripModal(trip, false, updateGridCallBack, workTripService, truckService, currentEmployee);
                 add(updateModal);
                 updateModal.getDialog().open();
             });
@@ -223,9 +275,28 @@ public class WorkTripView extends VerticalLayout {
             return menuBar;
         }).setWidth("70px").setFlexGrow(0);
 
-        grid.setItems(fetchData());
+        grid.setAllRowsVisible(true);
+
+        setGridDataAndMetrics(grid);
 
         return grid;
+    }
+
+    public void setGridDataAndMetrics(Grid<WorkTripDTO> workTripGrid) {
+        List<WorkTripDTO> data = fetchData();
+
+        if (!data.isEmpty()) {
+            long total = data.size();
+            long activeTrips = data.stream().filter(WorkTripDTO::isActive).count();
+            double avgRate = data.stream().mapToDouble(WorkTripDTO::getSalaryRate).sum() / total;
+            long allHourly = data.stream().filter(t -> t.getSalaryType().equals("HOURLY")).count();
+            gridNameColumn.setFooter("All trips: %d".formatted(total));
+            gridActiveColumn.setFooter("Active: %d, inactive: %d".formatted(activeTrips, total - activeTrips));
+            gridSalaryRateColumn.setFooter("Avg: %.2f".formatted(avgRate));
+            gridSalaryTypeColumn.setFooter("Hourly: %d, perkm: %d".formatted(allHourly, total - allHourly));
+        }
+
+        workTripGrid.setItems(data);
     }
 
     public void navigate(ClickEvent<?> event, Class<? extends Component> navigateTo, RouteParameters parameters) {

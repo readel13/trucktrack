@@ -2,12 +2,16 @@ package edu.trucktrack.ui.view;
 
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Text;
+import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.charts.Chart;
+import com.vaadin.flow.component.charts.model.AxisType;
 import com.vaadin.flow.component.charts.model.ChartType;
 import com.vaadin.flow.component.charts.model.Configuration;
 import com.vaadin.flow.component.charts.model.DataSeries;
 import com.vaadin.flow.component.charts.model.DataSeriesItem;
+import com.vaadin.flow.component.charts.model.PlotOptionsArea;
 import com.vaadin.flow.component.charts.model.PlotOptionsPie;
+import com.vaadin.flow.component.charts.model.SeriesTooltip;
 import com.vaadin.flow.component.charts.model.Tooltip;
 import com.vaadin.flow.component.contextmenu.ContextMenu;
 import com.vaadin.flow.component.details.Details;
@@ -28,6 +32,7 @@ import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import edu.trucktrack.api.dto.EmployeeExpensesDTO;
+import edu.trucktrack.api.dto.SalaryDTO;
 import edu.trucktrack.api.dto.TagDTO;
 import edu.trucktrack.api.dto.WorkTripDTO;
 import edu.trucktrack.api.request.FilterBy;
@@ -36,6 +41,7 @@ import edu.trucktrack.dao.entity.EmployeeEntity;
 import edu.trucktrack.dao.entity.enums.Currency;
 import edu.trucktrack.dao.repository.jooq.TagJooqRepository;
 import edu.trucktrack.dao.service.ExpensesService;
+import edu.trucktrack.dao.service.SalaryService;
 import edu.trucktrack.dao.service.WorkTripService;
 import edu.trucktrack.ui.MainLayout;
 import edu.trucktrack.ui.modal.ExpensesModal;
@@ -44,34 +50,32 @@ import jakarta.annotation.security.PermitAll;
 import lombok.RequiredArgsConstructor;
 import org.vaadin.addons.badge.Badge;
 
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 
 @PermitAll
 @RequiredArgsConstructor
-@PageTitle("Your expenses")
-@Route(value = "/expense/:tripId?", layout = MainLayout.class)
-public class ExpenseView extends VerticalLayout implements BeforeEnterObserver {
+@PageTitle("Your salary")
+@Route(value = "/salary/:tripId?", layout = MainLayout.class)
+public class SalaryView extends VerticalLayout implements BeforeEnterObserver {
 
     public static final String TRIP_ID_PATH_VARIABLE = "tripId";
     private WorkTripDTO trip;
     private Chart chart;
-    private VirtualList<EmployeeExpensesDTO> virtualList;
+    private VirtualList<SalaryDTO> virtualList;
 
     private final SecurityUtils securityUtils;
 
     private final WorkTripService workTripService;
 
-    private final ExpensesService expensesService;
-
-    // TODO: wire service
-    private final TagJooqRepository tagJooqRepository;
-
+    private final SalaryService salaryService;
     private Supplier<Object> updateData;
 
     private EmployeeEntity currentEmployee;
@@ -87,10 +91,10 @@ public class ExpenseView extends VerticalLayout implements BeforeEnterObserver {
     @Override
     public void beforeEnter(BeforeEnterEvent event) {
         this.trip = event.getRouteParameters()
-                 .get(TRIP_ID_PATH_VARIABLE)
-                 .map(Long::valueOf)
-                 .map(workTripService::getById)
-                 .orElse(null);
+                .get(TRIP_ID_PATH_VARIABLE)
+                .map(Long::valueOf)
+                .map(workTripService::getById)
+                .orElse(null);
         this.currentEmployee = securityUtils.getCurrentEmployee();
         this.searchCriteriaRequest = buildInitialCriteriaRequest();
         this.virtualList = createVirtualList();
@@ -104,7 +108,7 @@ public class ExpenseView extends VerticalLayout implements BeforeEnterObserver {
             return null;
         };
 
-      this.currentCurrency =  Optional.ofNullable(trip)
+        this.currentCurrency = Optional.ofNullable(trip)
                 .map(WorkTripDTO::getCurrency)
                 .orElse(currentEmployee.getCurrency().getName());
 
@@ -118,68 +122,59 @@ public class ExpenseView extends VerticalLayout implements BeforeEnterObserver {
             });
         }
 
-        var searchTextField = buildSearchbar();
-        var searchAndCreateLayout = new HorizontalLayout(searchTextField);
-        // TODO: fix modal, if trip is not present
-        if (trip != null) {
-            searchAndCreateLayout.add(new ExpensesModal(null, false, trip, updateData, expensesService, securityUtils, tagJooqRepository));
-        }
-        searchAndCreateLayout.setAlignItems(Alignment.CENTER);
-
         this.chart = buildChart();
 
-        title.setText(trip == null ? "Your all expenses" : "Your expenses from '%s' trip ".formatted(trip.getName()));
-//        VerticalLayout verticalLayout = new VerticalLayout(title, changeCurrencyMenuBar, new Div(chart), searchAndCreateLayout, virtualList);
-//        verticalLayout.setAlignItems(Alignment.STRETCH);
-//        verticalLayout.setSizeFull();
-        add(title, changeCurrencyMenuBar, chart, searchAndCreateLayout, virtualList);
         super.setHeightFull();
+
+        title.setText(trip == null ? "Your all salaries" : "Your salary from '%s' trip ".formatted(trip.getName()));
+        add(title, changeCurrencyMenuBar, chart, new Button("Save new"), virtualList);
     }
 
     private Chart buildChart() {
-        Chart chart = new Chart(ChartType.PIE);
+        Chart chart = new Chart();
 
         var currency = Optional.ofNullable(trip)
                 .map(WorkTripDTO::getCurrency)
                 .orElse(currentEmployee.getCurrency().getName());
 
-        PlotOptionsPie options = new PlotOptionsPie();
-        options.setSize("100%");
+        DataSeries dataSeries = fetchChartData(chart);
 
         Configuration configuration = chart.getConfiguration();
+        configuration.getChart().setType(ChartType.AREA);
+        configuration.getyAxis().setTitle("Money in " + currency);
+        configuration.getxAxis().setTitle("Time");
+        configuration.getxAxis().setType(AxisType.DATETIME);
+        configuration.getxAxis().setTickInterval(TimeUnit.DAYS.toMillis(1));
+        configuration.setTooltip(new Tooltip());
         configuration.setExporting(true);
-        configuration.setTitle("Expenses by tags");
-        configuration.setSeries(fetchChartData(chart));
-        configuration.setPlotOptions(options);
-        configuration.getTooltip().setPointFormat("Total by group: {point.y} %s".formatted(currency));
+        configuration.setTitle("Salaries from trip '%s'".formatted(trip.getName()));
+        configuration.setSeries(dataSeries);
         chart.setSizeFull();
 
         return chart;
     }
 
     private DataSeries fetchChartData(Chart chart) {
-        var convertedData = expensesService.getGrouppedByTag(searchCriteriaRequest, currentCurrency);
-        long sum = convertedData.values()
-                .stream()
-                .flatMap(Collection::stream)
-                .mapToLong(EmployeeExpensesDTO::getValue)
+        var convertedData = fetchData();
+        long sum = (long) convertedData.stream()
+                .mapToDouble(SalaryDTO::getSalary)
                 .sum();
 
         var seriesItems = convertedData
-                .entrySet()
                 .stream()
-                .map(entry -> mapToDataSeries(entry, sum))
+                .map(salary -> new DataSeriesItem(salary.getCreatedAt().toInstant(ZoneOffset.UTC), salary.getSalary()))
                 .toList();
 
         var dataSeries = new DataSeries(seriesItems);
+        dataSeries.setName("Salary");
         chart.getConfiguration().setSubTitle("Total - %d %s".formatted(sum, currentCurrency));
+        PlotOptionsArea plotOpts = new PlotOptionsArea();
+        SeriesTooltip tooltip = new SeriesTooltip();
+        tooltip.setPointFormat("Earned: {point.y} " + currentCurrency);
+        plotOpts.setTooltip(tooltip);
+        dataSeries.setPlotOptions(plotOpts);
+        dataSeries.setPlotOptions(plotOpts);
         return dataSeries;
-    }
-
-    private DataSeriesItem mapToDataSeries(Map.Entry<TagDTO, List<EmployeeExpensesDTO>> entry, long allSum) {
-        var sum = sum(entry.getValue());
-        double percentage = ((double) sum / allSum) * 100;
-        return new DataSeriesItem("%s - %.2f%%".formatted(entry.getKey().getName(), percentage), sum);
     }
 
     private SearchCriteriaRequest buildInitialCriteriaRequest() {
@@ -191,9 +186,9 @@ public class ExpenseView extends VerticalLayout implements BeforeEnterObserver {
                 .build();
     }
 
-    private ComponentRenderer<Component, EmployeeExpensesDTO> getExpenseComponentRenderer() {
+    private ComponentRenderer<Component, SalaryDTO> getExpenseComponentRenderer() {
         return new ComponentRenderer<>(
-                expense -> {
+                salaryDTO -> {
                     HorizontalLayout cardLayout = new HorizontalLayout();
                     cardLayout.setMargin(true);
                     cardLayout.setAlignItems(Alignment.CENTER);
@@ -202,19 +197,18 @@ public class ExpenseView extends VerticalLayout implements BeforeEnterObserver {
                     infoLayout.setSpacing(false);
                     infoLayout.setPadding(false);
 
-                    var salary = new Text(expense.getValue() + " " + expense.getCurrency());
+                    var salary = "%.2f %s".formatted(salaryDTO.getSalary(), salaryDTO.getCurrency());
 
-                    var nameBadge = new HorizontalLayout(new H4(expense.getName()), salary);
+                    var nameBadge = new HorizontalLayout(new H5("Earned %s at %s".formatted(salary, salaryDTO.getCreatedAt().format(dateTimeFormatter))));
                     nameBadge.setAlignItems(Alignment.CENTER);
-
-                    infoLayout.add(nameBadge, new Div(new Text(expense.getDescription())), new Div(mapBadges(expense)));
+                    infoLayout.add(nameBadge);
 
                     VerticalLayout moreDetailsLayout = new VerticalLayout();
                     moreDetailsLayout.setSpacing(false);
                     moreDetailsLayout.setPadding(false);
 
-                    moreDetailsLayout.add(createRow("From work trip: ", new Text(expense.getTrip().getName())));
-                    moreDetailsLayout.add(createRow("Created at: ", new Text(expense.getCreatedAt().format(dateTimeFormatter))));
+                    moreDetailsLayout.add(createRow("From work trip: ", new Text(salaryDTO.getTripName())));
+                    moreDetailsLayout.add(createRow("Earned at: ", new Text(salaryDTO.getCreatedAt().format(dateTimeFormatter))));
 
                     infoLayout.add(new Details("More details", moreDetailsLayout));
 
@@ -222,14 +216,9 @@ public class ExpenseView extends VerticalLayout implements BeforeEnterObserver {
 
                     var contextMenu = new ContextMenu();
                     contextMenu.setTarget(cardLayout);
-                    contextMenu.addItem("Edit", event -> {
-                        var expensesModal = new ExpensesModal(expense, true, trip, updateData, expensesService, securityUtils, tagJooqRepository);
-                        add(expensesModal);
-                        expensesModal.getDialog().open();
-                    });
                     contextMenu.addItem("Delete", event -> {
-                        expensesService.deleteById(expense.getId());
-                        virtualList.setItems(fetchData());
+                        salaryService.deleteById(salaryDTO.getId());
+                        updateData.get();
                     });
 
                     return cardLayout;
@@ -243,38 +232,15 @@ public class ExpenseView extends VerticalLayout implements BeforeEnterObserver {
         return new Div(rowLayout);
     }
 
-    public VirtualList<EmployeeExpensesDTO> createVirtualList() {
-        VirtualList<EmployeeExpensesDTO> list = new VirtualList<>();
+    public VirtualList<SalaryDTO> createVirtualList() {
+        VirtualList<SalaryDTO> list = new VirtualList<>();
         list.setRenderer(getExpenseComponentRenderer());
         list.setHeight("100%");
         list.setItems(fetchData());
         return list;
     }
 
-    private TextField buildSearchbar() {
-        var searchTextField = new TextField();
-        searchTextField.setPlaceholder("Search");
-        searchTextField.setPrefixComponent(VaadinIcon.SEARCH.create());
-        searchTextField.addValueChangeListener(event -> {
-            searchCriteriaRequest.getFilterBy().setName(event.getValue());
-            updateData.get();
-        });
-        searchTextField.setWidth("800px");
-        return searchTextField;
-    }
-
-    public List<EmployeeExpensesDTO> fetchData() {
-        return expensesService.get(searchCriteriaRequest);
-    }
-
-    private Span mapBadges(EmployeeExpensesDTO expensesDTO) {
-        var badges = expensesDTO.getTags().stream().map(TagDTO::getName).map(Badge::new).toArray(Badge[]::new);
-        return new Span(badges);
-    }
-
-    private Long sum(List<EmployeeExpensesDTO> expenses) {
-        return expenses.stream()
-                .mapToLong(EmployeeExpensesDTO::getValue)
-                .sum();
+    public List<SalaryDTO> fetchData() {
+        return salaryService.getAll(searchCriteriaRequest, currentCurrency);
     }
 }
