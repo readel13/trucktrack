@@ -73,7 +73,7 @@ public class MainLayout extends AppLayout {
         }
         tabs.add(createTab(VaadinIcon.HAMMER, "Settings", SettingView.class));
 
-                createTab(VaadinIcon.CHART, "Cargos", CargoView.class));
+                createTab(VaadinIcon.TASKS, "Cargos", CargoView.class));
         tabs.setOrientation(Tabs.Orientation.VERTICAL);
         return tabs;
     }
