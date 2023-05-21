@@ -263,6 +263,7 @@ public class WorkTripView extends VerticalLayout {
                     Double salary = salaryService.calculateSalary(trip);
                     trip.setSalary(salary.intValue());
                     trip.setClosedAt(LocalDateTime.now());
+                    trip.setActive(false);
                     workTripService.saveOrUpdate(trip);
                     updateGridCallBack.get();
                 });
