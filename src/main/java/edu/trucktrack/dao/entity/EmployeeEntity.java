@@ -71,13 +71,16 @@ public class EmployeeEntity {
             joinColumns = { @JoinColumn(name = "employee_id") },
             inverseJoinColumns = { @JoinColumn(name = "role_id") }
     )
-    Set<RoleEntity> roles = new HashSet<>();
+    private Set<RoleEntity> roles = new HashSet<>();
 
     @PrePersist
     public void onCreate() {
         createdAt = LocalDateTime.now();
     }
 
+    public boolean isManagerOrOwner() {
+        return roles.stream().map(RoleEntity::getRole).anyMatch(role -> role.equals("OWNER") || role.equals("MANAGER"));
+    }
 
     @Override
     public boolean equals(Object o) {
