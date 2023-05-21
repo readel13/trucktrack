@@ -4,17 +4,19 @@
 package edu.trucktrack.dao.jooq.tables;
 
 
-import edu.trucktrack.dao.jooq.Public;
-import edu.trucktrack.dao.jooq.tables.records.WorkTripCargoHistoryRecord;
 
 import java.time.LocalDateTime;
 import java.util.function.Function;
 
+import edu.trucktrack.dao.jooq.Public;
+import edu.trucktrack.dao.jooq.tables.records.WorkTripCargoHistoryRecord;
 import org.jooq.Field;
+import org.jooq.Function13;
 import org.jooq.Function9;
 import org.jooq.Identity;
 import org.jooq.Name;
 import org.jooq.Records;
+import org.jooq.Row13;
 import org.jooq.Row9;
 import org.jooq.Schema;
 import org.jooq.SelectField;
@@ -93,6 +95,26 @@ public class WorkTripCargoHistory extends TableImpl<WorkTripCargoHistoryRecord> 
      * The column <code>public.work_trip_cargo_history.created_at</code>.
      */
     public final TableField<WorkTripCargoHistoryRecord, LocalDateTime> CREATED_AT = createField(DSL.name("created_at"), SQLDataType.LOCALDATETIME(6).nullable(false).defaultValue(DSL.inline("CURRENT_TIMESTAMP", SQLDataType.LOCALDATETIME)), this, "");
+    /**
+     * The column <code>public.work_trip_cargo_history.loading_location</code>.
+     */
+    public final TableField<WorkTripCargoHistoryRecord, String> LOADING_LOCATION = createField(DSL.name("loading_location"), SQLDataType.VARCHAR(50), this, "");
+
+    /**
+     * The column <code>public.work_trip_cargo_history.loading_time</code>.
+     */
+    public final TableField<WorkTripCargoHistoryRecord, LocalDateTime> LOADING_TIME = createField(DSL.name("loading_time"), SQLDataType.LOCALDATETIME(6), this, "");
+
+    /**
+     * The column
+     * <code>public.work_trip_cargo_history.unloading_location</code>.
+     */
+    public final TableField<WorkTripCargoHistoryRecord, String> UNLOADING_LOCATION = createField(DSL.name("unloading_location"), SQLDataType.VARCHAR(50), this, "");
+
+    /**
+     * The column <code>public.work_trip_cargo_history.unloading_time</code>.
+     */
+    public final TableField<WorkTripCargoHistoryRecord, LocalDateTime> UNLOADING_TIME = createField(DSL.name("unloading_time"), SQLDataType.LOCALDATETIME(6), this, "");
 
     private WorkTripCargoHistory(Name alias, Table<WorkTripCargoHistoryRecord> aliased) {
         this(alias, aliased, null);
@@ -180,18 +202,19 @@ public class WorkTripCargoHistory extends TableImpl<WorkTripCargoHistoryRecord> 
     }
 
     // -------------------------------------------------------------------------
-    // Row9 type methods
+    // Row13 type methods
     // -------------------------------------------------------------------------
 
     @Override
-    public Row9<Long, Integer, String, String, String, Integer, Integer, LocalDateTime, LocalDateTime> fieldsRow() {
-        return (Row9) super.fieldsRow();
+    public Row13<Long, Integer, String, String, String, Integer, Integer, LocalDateTime, LocalDateTime, String, LocalDateTime, String, LocalDateTime> fieldsRow() {
+        return (Row13) super.fieldsRow();
     }
 
     /**
      * Convenience mapping calling {@link SelectField#convertFrom(Function)}.
      */
-    public <U> SelectField<U> mapping(Function9<? super Long, ? super Integer, ? super String, ? super String, ? super String, ? super Integer, ? super Integer, ? super LocalDateTime, ? super LocalDateTime, ? extends U> from) {
+    public <U> SelectField<U> mapping(
+            Function13<? super Long, ? super Integer, ? super String, ? super String, ? super String, ? super Integer, ? super Integer, ? super LocalDateTime, ? super LocalDateTime, ? super String, ? super LocalDateTime, ? super String, ? super LocalDateTime, ? extends U> from) {
         return convertFrom(Records.mapping(from));
     }
 
@@ -199,7 +222,7 @@ public class WorkTripCargoHistory extends TableImpl<WorkTripCargoHistoryRecord> 
      * Convenience mapping calling {@link SelectField#convertFrom(Class,
      * Function)}.
      */
-    public <U> SelectField<U> mapping(Class<U> toType, Function9<? super Long, ? super Integer, ? super String, ? super String, ? super String, ? super Integer, ? super Integer, ? super LocalDateTime, ? super LocalDateTime, ? extends U> from) {
+    public <U> SelectField<U> mapping(Class<U> toType, Function13<? super Long, ? super Integer, ? super String, ? super String, ? super String, ? super Integer, ? super Integer, ? super LocalDateTime, ? super LocalDateTime, ? super String, ? super LocalDateTime, ? super String, ? super LocalDateTime, ? extends U> from) {
         return convertFrom(toType, Records.mapping(from));
     }
 }

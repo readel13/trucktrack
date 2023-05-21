@@ -16,4 +16,12 @@ public class FilterBy {
     private Integer companyId;
 
     private Integer employeeId;
+
+    private String email;
+
+    private String employeeName;
+
+    private String loadingLocation;
+
+    private String unloadingLocation;
 }

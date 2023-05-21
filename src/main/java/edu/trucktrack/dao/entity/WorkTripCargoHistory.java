@@ -47,6 +47,14 @@ public class WorkTripCargoHistory {
 
     private Integer distance;
 
+    private String loadingLocation;
+
+    private LocalDateTime loadingTime;
+
+    private String unloadingLocation;
+
+    private LocalDateTime unloadingTime;
+
     private LocalDateTime deliveredAt;
 
     private LocalDateTime createdAt;

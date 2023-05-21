@@ -110,7 +110,7 @@ public class ExpenseView extends VerticalLayout implements BeforeEnterObserver {
 
         this.chart = buildChart();
 
-        super.setHeightFull();
+        //super.setHeightFull();
 
         title.setText(trip == null ? "Your all expenses" : "Your expenses from '%s' trip ".formatted(trip.getName()));
         VerticalLayout verticalLayout = new VerticalLayout(title, new Div(chart), searchAndCreateLayout, virtualList);
@@ -218,7 +218,6 @@ public class ExpenseView extends VerticalLayout implements BeforeEnterObserver {
                         expensesService.deleteById(expense.getId());
                         virtualList.setItems(fetchData());
                     });
-
                     return cardLayout;
                 });
     }

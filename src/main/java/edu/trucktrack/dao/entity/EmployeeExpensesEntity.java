@@ -45,7 +45,7 @@ public class EmployeeExpensesEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     private WorkTripEntity trip;
 
-    @ManyToMany(cascade = CascadeType.MERGE )
+    @ManyToMany(cascade = CascadeType.MERGE, fetch = FetchType.EAGER)
     @JoinTable(
             name = "employee_expenses_tag",
             joinColumns = { @JoinColumn(name = "expense_id") },

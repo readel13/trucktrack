@@ -32,7 +32,7 @@ public class MapUpdater {
 
 	public MapUpdater(MapService mapService) {
 		this.mapService = mapService;
-		this.addLocationData(new AndroidTrackerLocationData("vasia@mail.com", 48.15844527759325, 25.726506569491583, 31.1));
+		this.addLocationData(new AndroidTrackerLocationData("vasia1@mail.com", 48.15844527759325, 25.726506569491583, 31.1));
 
 	}
 
@@ -79,9 +79,9 @@ public class MapUpdater {
 		}
 	}
 
-	@Bean
-	@Scheduled(fixedDelay = 2, timeUnit = TimeUnit.SECONDS)
-	public void updateCoordinates() {
-		locationDataMap.forEach((key, value) -> value.setLongitude(value.getLongitude() + 0.01));
-	}
+//	@Bean
+//	@Scheduled(fixedDelay = 2, timeUnit = TimeUnit.SECONDS)
+//	public void updateCoordinates() {
+//		locationDataMap.forEach((key, value) -> value.setLongitude(value.getLongitude() + 0.01));
+//	}
 }

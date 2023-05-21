@@ -7,14 +7,17 @@ import edu.trucktrack.util.MapUpdater;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-@RestController
+@Controller
 @RequestMapping("/api/tracker")
 @RequiredArgsConstructor
 public class AndroidTrackerController {
@@ -22,8 +25,8 @@ public class AndroidTrackerController {
 	private final MapUpdater mapUpdater;
 	private final SalaryService salaryService;
 
-	@GetMapping("/auth")
-	public ResponseEntity<?> checkLogin() {
+	@RequestMapping(method = RequestMethod.POST, path = "/auth")
+	public ResponseEntity<?> checkLogin(Authentication authentication) {
 		return ResponseEntity.ok("Auth complete");
 	}
 

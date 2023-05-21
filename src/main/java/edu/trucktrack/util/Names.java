@@ -55,4 +55,28 @@ public interface Names {
     Name EMAIL = name("email");
 
     Name COMPANY = name("company");
+
+    Name CARGO = name("work_trip_cargo_history");
+
+    Name CARGO_NAME = name("cargo_name");
+
+    Name CARGO_DESCRIPTION = name("cargo_description");
+
+    Name CARGO_WEIGHT = name("cargo_weight");
+
+    Name DISTANCE = name("distance");
+
+    Name LOADING_LOCATION = name("loading_location");
+
+    Name LOADING_TIME = name("loading_time");
+
+    Name UNLOADING_LOCATION = name("unloading_location");
+
+    Name UNLOADING_TIME = name("unloading_time");
+
+    Name DELIVERED_AT = name("delivered_at");
+
+    Name EMPLOYEE = name("employee");
+
+    Name WORK_TRIP_ID = name("work_trip_id");
 }

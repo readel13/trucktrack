@@ -2,25 +2,33 @@ package edu.trucktrack.ui.view;
 
 import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.charts.Chart;
 import com.vaadin.flow.component.charts.model.AxisType;
 import com.vaadin.flow.component.charts.model.ChartType;
 import com.vaadin.flow.component.charts.model.Configuration;
 import com.vaadin.flow.component.charts.model.DataSeries;
 import com.vaadin.flow.component.charts.model.DataSeriesItem;
+import com.vaadin.flow.component.charts.model.Dial;
 import com.vaadin.flow.component.charts.model.Labels;
 import com.vaadin.flow.component.charts.model.PlotOptionsArea;
 import com.vaadin.flow.component.charts.model.PlotOptionsBar;
 import com.vaadin.flow.component.charts.model.SeriesTooltip;
 import com.vaadin.flow.component.charts.model.Tooltip;
 import com.vaadin.flow.component.charts.model.style.SolidColor;
+import com.vaadin.flow.component.contextmenu.MenuItem;
+import com.vaadin.flow.component.contextmenu.SubMenu;
+import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.gridpro.GridPro;
 import com.vaadin.flow.component.gridpro.GridProVariant;
+import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.menubar.MenuBarVariant;
+import com.vaadin.flow.component.messages.MessageInput;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -30,23 +38,45 @@ import com.vaadin.flow.data.renderer.NumberRenderer;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouteParameters;
+import com.vaadin.flow.server.StreamResource;
+import edu.trucktrack.api.dto.EmployeeExpensesDTO;
 import edu.trucktrack.api.dto.WorkTripDTO;
 import edu.trucktrack.api.request.FilterBy;
 import edu.trucktrack.api.request.SearchCriteriaRequest;
 import edu.trucktrack.dao.entity.EmployeeEntity;
+import edu.trucktrack.dao.entity.WorkTripEntity;
 import edu.trucktrack.dao.service.TruckService;
 import edu.trucktrack.dao.service.WorkTripService;
+import edu.trucktrack.service.SalaryService;
 import edu.trucktrack.ui.MainLayout;
+import edu.trucktrack.ui.modal.ChoosingDialog;
 import edu.trucktrack.ui.modal.TripModal;
+import edu.trucktrack.util.EmailUtil;
+import edu.trucktrack.util.ReportUtil;
 import edu.trucktrack.util.SecurityUtils;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.security.PermitAll;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
+
+import org.apache.commons.mail.DefaultAuthenticator;
+import org.apache.commons.mail.EmailAttachment;
+import org.apache.commons.mail.EmailException;
+import org.apache.commons.mail.MultiPartEmail;
 import org.vaadin.addons.badge.Badge;
 
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
@@ -63,6 +93,12 @@ public class WorkTripView extends VerticalLayout {
     private final TruckService truckService;
 
     private final WorkTripService workTripService;
+
+    private final ReportUtil reportUtil;
+
+    private final EmailUtil emailUtil;
+
+    private final SalaryService salaryService;
 
     private Supplier<Object> updateGridCallBack;
 
@@ -198,12 +234,82 @@ public class WorkTripView extends VerticalLayout {
                 notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 updateGridCallBack.get();
             });
+            if (trip.getClosedAt() == null) {
+                MenuItem report = menuBar.addItem("Report");
+                SubMenu repostSubMenu = report.getSubMenu();
+                Dialog dialog = new ChoosingDialog("Chose file type");
+                dialog.setMaxWidth("400px");
+                repostSubMenu.addItem("Download report", e -> {
+
+                    WorkTripEntity workTrip = reportUtil.getWorkTrip(trip.getId());
+                    Map<EmployeeExpensesDTO, List<String>> expensesDTOListMap = reportUtil.getExpensesTagMap(workTrip);
+                    File pdf = reportUtil.getPdfReport(workTrip, expensesDTOListMap);
+                    File csv = reportUtil.getCsvFile(workTrip, expensesDTOListMap);
+
+                    dialog.open();
+                    HorizontalLayout pdfLayout = new HorizontalLayout();
+                    pdfLayout.add(createFileDownloadButton(pdf, dialog));
+
+                    pdfLayout.add(createEmailSenderButton(dialog, pdf));
+                    HorizontalLayout csvLayout = new HorizontalLayout();
+                    csvLayout.add(createFileDownloadButton(csv, dialog));
+                    csvLayout.add(createEmailSenderButton(dialog, csv));
+                    dialog.add(pdfLayout, csvLayout);
+
+                });
+            }
+            if (trip.getClosedAt() == null) {
+                menuBar.addItem("Close trip", e -> {
+                    Double salary = salaryService.calculateSalary(trip);
+                    trip.setSalary(salary.intValue());
+                    trip.setClosedAt(LocalDateTime.now());
+                    workTripService.saveOrUpdate(trip);
+                    updateGridCallBack.get();
+                });
+            }
             return menuBar;
         }).setWidth("70px").setFlexGrow(0);
 
         grid.setItems(fetchData());
 
         return grid;
+    }
+
+    private Button createEmailSenderButton(Dialog dialog, File attachment) {
+        Button sendFile = new Button("Send", pdfEvent -> {
+            Dialog emailDialog = new Dialog();
+            dialog.close();
+            emailDialog.open();
+
+            MessageInput input = new MessageInput();
+            input.setWidth("400px");
+            input.getI18n().setMessage("Email");
+            input.addSubmitListener(e -> {
+                emailUtil.sendEmailWithAttachment(e.getValue(), attachment);
+                emailDialog.close();
+            });
+            emailDialog.add(input);
+        });
+        sendFile.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        return sendFile;
+    }
+
+    private Anchor createFileDownloadButton(File file, Dialog dialog) {
+        FileInputStream inputStream;
+        try {
+            inputStream = new FileInputStream(file);
+        } catch (FileNotFoundException ex) {
+            throw new RuntimeException(ex);
+        }
+
+        StreamResource streamResource = new StreamResource(file.getName(), () -> inputStream);
+
+        Button button = new Button(String.format("%s (%d KB)", file.getName(), (int) file.length() / 1024), exc -> dialog.close());
+        button.setWidth("250px");
+        Anchor anchor = new Anchor(streamResource, "");
+        anchor.add(button);
+        anchor.getElement().setAttribute("download", true);
+        return anchor;
     }
 
     public void navigate(ClickEvent<?> event, Class<? extends Component> navigateTo, RouteParameters parameters) {

@@ -3,6 +3,7 @@ package edu.trucktrack.dao.service;
 import edu.trucktrack.api.dto.EmployeeExpensesDTO;
 import edu.trucktrack.api.dto.TagDTO;
 import edu.trucktrack.api.request.SearchCriteriaRequest;
+import edu.trucktrack.dao.entity.EmployeeExpensesEntity;
 import edu.trucktrack.dao.repository.jooq.EmployeeExpensesEntityRecord;
 import edu.trucktrack.dao.repository.jooq.ExpensesJooqRepository;
 import edu.trucktrack.dao.repository.jooq.TagJooqRepository;

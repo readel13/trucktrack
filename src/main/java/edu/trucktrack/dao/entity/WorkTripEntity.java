@@ -38,11 +38,11 @@ public class WorkTripEntity {
     private String description;
 
     @JoinColumn(name = "employee_id")
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     private EmployeeEntity employee;
 
     @JoinColumn(name = "truck_id")
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     private TruckEntity truck;
 
     private Integer salary;
