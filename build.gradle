@@ -68,6 +68,7 @@ dependencies {
     implementation "com.vaadin:vaadin:20.+"
     implementation 'org.vaadin.addons.e-movimento:moneyfield:2.1.8'
     implementation 'org.vaadin.addons.mycompany:badge:2.2.2'
+    implementation 'com.github.diasadm:daterange-picker:1.0.0'
 }
 
 dependencyManagement {

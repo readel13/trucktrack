@@ -82,6 +82,12 @@ public class WorkTripJooqRepo {
         Optional.ofNullable(filter.getName())
                 .ifPresent(name -> baseQuery.addConditions(trip.NAME.likeIgnoreCase("%" + name + "%")));
 
+        Optional.ofNullable(filter.getFrom())
+                .ifPresent(date -> baseQuery.addConditions(trip.CREATED_AT.ge(date.atStartOfDay())));
+
+        Optional.ofNullable(filter.getTo())
+                .ifPresent(date -> baseQuery.addConditions(trip.CREATED_AT.le(date.atStartOfDay())));
+
         return baseQuery.fetchInto(WorkTripRecordEntity.class);
     }
 

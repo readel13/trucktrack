@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -38,8 +39,7 @@ public class WorkTripService {
     }
 
     public List<WorkTripDTO> getAndConvertExpenses(SearchCriteriaRequest criteriaRequest, String convertTo) {
-        var tripExpensesMap = expensesService.get(criteriaRequest).stream()
-                .collect(Collectors.groupingBy(EmployeeExpensesDTO::getTrip));
+        var tripExpensesMap = expensesService.get(criteriaRequest).stream().collect(Collectors.groupingBy(EmployeeExpensesDTO::getTrip));
 
         List<WorkTripDTO> result = new ArrayList<>();
         for (var entry : tripExpensesMap.entrySet()) {
@@ -52,6 +52,8 @@ public class WorkTripService {
             result.add(trip);
         }
 
+        result.sort(Comparator.comparing(WorkTripDTO::getCreatedAt));
+
         return result;
     }
 
@@ -59,6 +61,7 @@ public class WorkTripService {
     public List<WorkTripDTO> getAndConvertSalaries(SearchCriteriaRequest criteriaRequest, String convertTo) {
         return get(criteriaRequest).stream()
                 .peek(trip -> trip.setSalary(Math.toIntExact(exchangeRateService.convertTo(Long.valueOf(trip.getSalary()), trip.getCurrency(), convertTo))))
+                .sorted(Comparator.comparing(WorkTripDTO::getCreatedAt))
                 .toList();
     }
 

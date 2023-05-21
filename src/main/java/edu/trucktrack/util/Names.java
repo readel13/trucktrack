@@ -31,6 +31,7 @@ public interface Names {
     Name EXPENSE_ID = name("expense_id");
     Name TRIP_ID = name("trip_id");
     Name TRIP_NAME = name("trip_name");
+    Name CALCULATION_VALUE = name("calculation_value");
     Name TRUCK_ID = name("truck_id");
     Name TRUCK_NAME = name("truck_name");
     Name TRUCK_NUMBER = name("truck_number");

@@ -22,5 +22,11 @@ public class EmployeeDTO {
 
     private CurrencyEntity currency;
 
+    private Long totalSalary;
+
+    private Long totalExpenses;
+
+    private String totalCurrency;
+
     private LocalDateTime createdAt;
 }

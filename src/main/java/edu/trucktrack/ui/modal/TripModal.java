@@ -21,10 +21,8 @@ import edu.trucktrack.dao.entity.enums.Currency;
 import edu.trucktrack.dao.entity.enums.SalaryType;
 import edu.trucktrack.dao.service.TruckService;
 import edu.trucktrack.dao.service.WorkTripService;
-import edu.trucktrack.util.SecurityUtils;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-
 
 import java.time.LocalDateTime;
 import java.util.function.Supplier;
@@ -35,7 +33,6 @@ public class TripModal extends VerticalLayout {
 
     private final TruckService truckService;
     private final WorkTripService workTripService;
-    private final SecurityUtils securityUtils;
 
     private final Supplier<Object> updateGridCallback;
 
@@ -68,16 +65,15 @@ public class TripModal extends VerticalLayout {
                      boolean create,
                      Supplier<Object> updateGrid,
                      WorkTripService workTripService, TruckService truckService,
-                     SecurityUtils securityUtils) {
+                     EmployeeEntity currentEmployee) {
         this.name.setSizeFull();
         this.description.setSizeFull();
 
         this.create = create;
         this.truckService = truckService;
-        this.securityUtils = securityUtils;
         this.workTripService = workTripService;
         this.updateGridCallback = updateGrid;
-        this.currentEmployee = securityUtils.getCurrentEmployee();
+        this.currentEmployee = currentEmployee;
         this.saveButton = buildSaveButton();
 
         openModalButton = create ? new Button("Create new", e -> dialog.open()) : null;

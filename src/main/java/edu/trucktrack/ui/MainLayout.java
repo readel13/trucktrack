@@ -17,9 +17,12 @@ import edu.trucktrack.ui.view.AnalyticsView;
 import edu.trucktrack.ui.view.CargoView;
 import edu.trucktrack.ui.view.ExpenseView;
 import edu.trucktrack.ui.view.DashboardView;
+import edu.trucktrack.ui.view.EmployeeView;
+import edu.trucktrack.ui.view.ExpenseView;
 import edu.trucktrack.ui.view.MapView;
-import edu.trucktrack.ui.view.TaskView;
+import edu.trucktrack.ui.view.SettingView;
 import edu.trucktrack.ui.view.WorkTripView;
+import edu.trucktrack.util.SecurityUtils;
 import jakarta.annotation.security.PermitAll;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -27,10 +30,12 @@ import org.springframework.security.core.userdetails.UserDetails;
 @Route("/ui")
 public class MainLayout extends AppLayout {
 
+    private final SecurityUtils securityUtils;
     private final transient AuthenticationContext authContext;
 
-    public MainLayout(AuthenticationContext authContext) {
+    public MainLayout(AuthenticationContext authContext, SecurityUtils securityUtils) {
         this.authContext = authContext;
+        this.securityUtils = securityUtils;
 
         var toggle = new DrawerToggle();
 
@@ -58,11 +63,16 @@ public class MainLayout extends AppLayout {
     private Tabs getTabs() {
         Tabs tabs = new Tabs();
         tabs.add(createTab(VaadinIcon.DASHBOARD, "Dashboard", DashboardView.class),
-                createTab(VaadinIcon.USER_HEART, "Customers", AnalyticsView.class),
-                createTab(VaadinIcon.LIST, "Tasks", TaskView.class),
-                createTab(VaadinIcon.ROAD, "WorkTrips", WorkTripView.class),
-                createTab(VaadinIcon.MONEY, "Expenses", ExpenseView.class),
                 createTab(VaadinIcon.MAP_MARKER, "Map", MapView.class),
+                createTab(VaadinIcon.ROAD, "WorkTrips", WorkTripView.class),
+                createTab(VaadinIcon.MONEY_WITHDRAW, "Expenses", ExpenseView.class)
+        );
+
+        if (securityUtils.getCurrentEmployee().isManagerOrOwner()) {
+            tabs.add(createTab(VaadinIcon.USER_CARD, "Employees", EmployeeView.class));
+        }
+        tabs.add(createTab(VaadinIcon.HAMMER, "Settings", SettingView.class));
+
                 createTab(VaadinIcon.CHART, "Cargos", CargoView.class));
         tabs.setOrientation(Tabs.Orientation.VERTICAL);
         return tabs;
