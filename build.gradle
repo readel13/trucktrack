@@ -16,6 +16,10 @@ configurations {
     }
 }
 
+vaadin {
+    productionMode = true
+}
+
 compileJava {
     options.compilerArgs = [
             '-Amapstruct.defaultComponentModel=spring'
