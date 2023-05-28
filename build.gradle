@@ -32,14 +32,13 @@ ext {
     set('vaadinVersion', "24.0.0")
 }
 
-tasks.register('fooTask') {
+tasks.register('setEnv') {
     doLast {
         exec {
             file('trucktrack.env').readLines().each() {
                 def (key, value) = it.tokenize('=')
                 environment key, value
             }
-            commandLine 'fooScript.sh'
         }
     }
 }
