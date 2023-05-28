@@ -10,7 +10,7 @@ spring:
     driver-class-name: org.postgresql.Driver
   flyway:
     enabled: true
-    url: jdbc:postgresql://${DBHOST}:5432/trucktrack
+    url: jdbc:postgresql://34.122.54.148:5432/trucktrack
     user: postgres
     password: very_strong_pass12#$&)
     driver-class-name: org.postgresql.Driver
