@@ -279,7 +279,7 @@ public class WorkTripView extends VerticalLayout implements BeforeEnterObserver 
             menuBar.addThemeVariants(MenuBarVariant.LUMO_TERTIARY);
             menuBar.addItem("View expenses", event -> navigate(event, ExpenseView.class, tripRouteParam.apply(trip.getId())));
             if (trip.getSalaryType().equals(SalaryType.PER_KM.name())) {
-                menuBar.addItem("View salary", event -> navigate(event, ExpenseView.class, tripRouteParam.apply(trip.getId())));
+                menuBar.addItem("View salary", event -> navigate(event, SalaryView.class, tripRouteParam.apply(trip.getId())));
             }
             menuBar.addItem("Edit", event -> {
                 var updateModal = new TripModal(trip, false, updateGridCallBack, workTripService, truckService, currentEmployee);
