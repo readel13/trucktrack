@@ -22,4 +22,4 @@ apiKey: AIzaSyAsQ2rImrHzhx7yrxuShFpmsHZ5R_XmSho
 vaadin:
   whitelisted-packages: edu.trucktrack.ui
   servlet:
-    productionMode: true
+    productionMode: false

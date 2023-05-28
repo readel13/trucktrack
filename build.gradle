@@ -17,7 +17,7 @@ configurations {
 }
 
 vaadin {
-    productionMode = true
+    productionMode = false
 }
 
 compileJava {
